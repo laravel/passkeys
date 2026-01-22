@@ -1,0 +1,50 @@
+{
+  "name": "@laravel/passkeys",
+  "version": "0.0.1",
+  "description": "Passkey authentication for Laravel applications",
+  "keywords": [
+    "laravel",
+    "passkeys",
+    "webauthn",
+    "authentication",
+    "passwordless"
+  ],
+  "homepage": "https://github.com/laravel/passkeys/tree/main/packages/core#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/laravel/passkeys.git"
+  },
+  "bugs": {
+    "url": "https://github.com/laravel/passkeys/issues"
+  },
+  "license": "MIT",
+  "author": "Laravel",
+  "type": "module",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.umd.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@simplewebauthn/browser": "^13.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "vite": "^5.1.0",
+    "vite-plugin-dts": "^4.5.0"
+  }
+}

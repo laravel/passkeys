@@ -1,0 +1,19 @@
+{
+  "name": "@laravel/passkeys",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @laravel/passkeys && npm run build -w @laravel/passkeys-react -w @laravel/passkeys-vue -w @laravel/passkeys-alpine",
+    "dev": "npm run dev --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

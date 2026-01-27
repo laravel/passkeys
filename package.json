@@ -1,19 +1,83 @@
 {
-  "name": "@laravel/passkeys",
-  "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
-  "scripts": {
-    "build": "npm run build -w @laravel/passkeys && npm run build -w @laravel/passkeys-react -w @laravel/passkeys-vue -w @laravel/passkeys-alpine",
-    "dev": "npm run dev --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present",
-    "clean": "npm run clean --workspaces --if-present"
-  },
-  "devDependencies": {
-    "typescript": "^5.3.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  }
+    "name": "@laravel/passkeys",
+    "version": "0.0.1",
+    "description": "Passkey authentication for Laravel applications",
+    "keywords": [
+        "laravel",
+        "passkeys",
+        "webauthn",
+        "authentication",
+        "passwordless"
+    ],
+    "homepage": "https://github.com/laravel/passkeys#readme",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/laravel/passkeys.git"
+    },
+    "bugs": {
+        "url": "https://github.com/laravel/passkeys/issues"
+    },
+    "license": "MIT",
+    "author": "Laravel",
+    "type": "module",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./react": {
+            "types": "./dist/react.d.ts",
+            "import": "./dist/react.js"
+        },
+        "./vue": {
+            "types": "./dist/vue.d.ts",
+            "import": "./dist/vue.js"
+        }
+    },
+    "main": "./dist/index.js",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite build --watch",
+        "test": "vitest",
+        "lint": "eslint",
+        "format": "prettier --write .",
+        "typecheck": "tsc --noEmit",
+        "clean": "rm -rf dist"
+    },
+    "dependencies": {
+        "@simplewebauthn/browser": "^13.0.0"
+    },
+    "peerDependencies": {
+        "react": "^18.0.0 || ^19.0.0",
+        "vue": "^3.0.0"
+    },
+    "peerDependenciesMeta": {
+        "react": {
+            "optional": true
+        },
+        "vue": {
+            "optional": true
+        }
+    },
+    "devDependencies": {
+        "@types/react": "^18.2.0 || ^19.0.0",
+        "@typescript-eslint/eslint-plugin": "^8.0.0",
+        "@typescript-eslint/parser": "^8.0.0",
+        "eslint": "^9.0.0",
+        "jsdom": "^26.0.0",
+        "prettier": "^3.5.0",
+        "typescript": "^5.3.0",
+        "vite": "^5.1.0",
+        "vite-plugin-dts": "^4.5.0",
+        "vitest": "^3.0.0",
+        "vue": "^3.0.0"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    }
 }

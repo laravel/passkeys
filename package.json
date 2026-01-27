@@ -41,6 +41,7 @@
         "dist"
     ],
     "scripts": {
+        "prepare": "npm run build",
         "build": "vite build",
         "dev": "vite build --watch",
         "test": "vitest",

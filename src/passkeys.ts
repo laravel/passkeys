@@ -55,6 +55,9 @@ export const Passkeys = {
             throw new NotSupportedError();
         }
 
+        // Cancel any pending ceremony
+        this.cancel();
+
         try {
             const { options: optionsJSON } =
                 await get<RegistrationOptionsResponse>(
@@ -84,6 +87,9 @@ export const Passkeys = {
         if (!this.isSupported()) {
             throw new NotSupportedError();
         }
+
+        // Cancel any pending ceremony (e.g., autofill)
+        this.cancel();
 
         try {
             const { options: optionsJSON } = await get<VerifyOptionsResponse>(
@@ -139,6 +145,10 @@ export const Passkeys = {
                 options?.onSuccess?.();
             }
         } catch (error) {
+            if (error instanceof Error && error.name === "AbortError") {
+                return;
+            }
+
             if (options?.onError) {
                 options.onError(toPasskeyError(error));
             }

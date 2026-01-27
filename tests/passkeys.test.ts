@@ -175,6 +175,23 @@ describe("Passkeys", () => {
             });
             expect(result).toEqual(mockVerifyResponse);
         });
+
+        it("cancels any pending ceremony before starting", async () => {
+            fetchMock
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve(mockOptionsResponse),
+                })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve(mockVerifyResponse),
+                });
+            (startAuthentication as Mock).mockResolvedValue(mockCredential);
+
+            await Passkeys.verify();
+
+            expect(WebAuthnAbortService.cancelCeremony).toHaveBeenCalled();
+        });
     });
 
     describe("autofill", () => {
@@ -266,6 +283,22 @@ describe("Passkeys", () => {
             await Passkeys.autofill({ onSuccess });
 
             expect(onSuccess).not.toHaveBeenCalled();
+        });
+
+        it("silently ignores AbortError without calling onError", async () => {
+            fetchMock.mockResolvedValueOnce({
+                ok: true,
+                json: () => Promise.resolve(mockOptionsResponse),
+            });
+
+            const abortError = new Error("Aborted");
+            abortError.name = "AbortError";
+            (startAuthentication as Mock).mockRejectedValue(abortError);
+
+            const onError = vi.fn();
+            await Passkeys.autofill({ onError });
+
+            expect(onError).not.toHaveBeenCalled();
         });
     });
 

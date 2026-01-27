@@ -1,7 +1,7 @@
 {
     "name": "@laravel/passkeys",
     "version": "0.0.1",
-    "description": "Passkey authentication for Laravel applications",
+    "description": "Passkeys client for Laravel applications",
     "keywords": [
         "laravel",
         "passkeys",

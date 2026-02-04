@@ -1,4 +1,4 @@
-export interface PasskeyRoutes {
+export type PasskeyRoutes = {
     /**
      * GET: Fetch registration options from the server.
      * @default '/user/passkeys/options'
@@ -22,7 +22,7 @@ export interface PasskeyRoutes {
      * @default '/passkeys/verify'
      */
     verifySubmit: string;
-}
+};
 
 /**
  * Default Laravel routes for passkey operations.

@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Passkeys } from "../passkeys";
 
-interface UsePasskeyLoginOptions {
+type UsePasskeyLoginOptions = {
     onSuccess?: () => void;
     onError?: (error: Error) => void;
-}
+};
 
 export function usePasskeyLogin({
     onSuccess,
@@ -53,10 +53,10 @@ export function usePasskeyLogin({
     };
 }
 
-interface UsePasskeyRegisterOptions {
+type UsePasskeyRegisterOptions = {
     onSuccess?: () => void;
     onError?: (error: Error) => void;
-}
+};
 
 export function usePasskeyRegister({
     onSuccess,

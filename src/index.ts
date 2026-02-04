@@ -13,7 +13,6 @@ export type { PasskeyRoutes } from "./routes";
 
 export type {
     RegisterOptions,
-    AutofillOptions,
     RegistrationResponse,
     VerifyResponse,
 } from "./types";

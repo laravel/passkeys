@@ -10,7 +10,6 @@ import { toPasskeyError, NotSupportedError } from "./errors";
 import { configureRoutes, getRoutes } from "./routes";
 import type {
     RegisterOptions,
-    AutofillOptions,
     PasskeyRoutes,
     RegistrationOptionsResponse,
     VerifyOptionsResponse,
@@ -114,15 +113,18 @@ export const Passkeys = {
      *
      * Note that the page must have an input with `autocomplete="username webauthn"` to
      * anchor the browser's passkey picker dropdown.
+     *
+     * Returns the verification response on success, or `undefined` if autofill
+     * is not supported or was cancelled.
      */
-    async autofill(options?: AutofillOptions): Promise<void> {
+    async autofill(): Promise<VerifyResponse | undefined> {
         if (!this.isSupported()) {
-            return;
+            return undefined;
         }
 
         const supportsAutofill = await this.isAutofillSupported();
         if (!supportsAutofill) {
-            return;
+            return undefined;
         }
 
         try {
@@ -136,22 +138,17 @@ export const Passkeys = {
             });
 
             const request: VerifyRequest = { credential };
-            const result = await post<VerifyResponse>(
+
+            return await post<VerifyResponse>(
                 getRoutes().verifySubmit,
                 request,
             );
-
-            if (result.verified) {
-                options?.onSuccess?.();
-            }
         } catch (error) {
             if (error instanceof Error && error.name === "AbortError") {
-                return;
+                return undefined;
             }
 
-            if (options?.onError) {
-                options.onError(toPasskeyError(error));
-            }
+            throw toPasskeyError(error);
         }
     },
 

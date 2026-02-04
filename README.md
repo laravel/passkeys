@@ -109,7 +109,7 @@ const {
 | `isAutofillSupported()`            | Check if the browser supports passkey autofill    |
 | `register({ name })`               | Register a new passkey for the authenticated user |
 | `verify()`                         | Verify a passkey                                  |
-| `autofill({ onSuccess, onError })` | Enable passkey autofill on the current page       |
+| `autofill()`                       | Enable passkey autofill on the current page       |
 | `cancel()`                         | Cancel any pending passkey operation              |
 
 ## Expected Endpoints

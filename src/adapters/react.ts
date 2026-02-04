@@ -32,12 +32,15 @@ export function usePasskeyLogin({
     useEffect(() => {
         void Passkeys.isAutofillSupported().then((supported) => {
             if (supported) {
-                void Passkeys.autofill({
-                    onSuccess: () => onSuccess?.(),
-                    onError: (_e) => {
+                void Passkeys.autofill()
+                    .then((result) => {
+                        if (result?.verified) {
+                            onSuccess?.();
+                        }
+                    })
+                    .catch(() => {
                         /* Autofill errors are silently ignored */
-                    },
-                });
+                    });
             }
         });
     }, []);

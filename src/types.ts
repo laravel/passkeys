@@ -14,18 +14,6 @@ export interface RegisterOptions {
     name: string;
 }
 
-export interface AutofillOptions {
-    /**
-     * Called when the user successfully verifies via autofill.
-     */
-    onSuccess?: () => void;
-
-    /**
-     * Called when an error occurs.
-     */
-    onError?: (error: Error) => void;
-}
-
 /**
  * Response from GET /passkeys/register/options
  */

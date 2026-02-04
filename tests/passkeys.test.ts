@@ -214,23 +214,26 @@ describe("Passkeys", () => {
             },
         };
 
-        it("does nothing when WebAuthn is not supported", async () => {
+        it("returns undefined when WebAuthn is not supported", async () => {
             (browserSupportsWebAuthn as Mock).mockReturnValue(false);
 
-            await Passkeys.autofill();
+            const result = await Passkeys.autofill();
 
+            expect(result).toBeUndefined();
             expect(fetchMock).not.toHaveBeenCalled();
         });
 
-        it("does nothing when autofill is not supported", async () => {
+        it("returns undefined when autofill is not supported", async () => {
             (browserSupportsWebAuthnAutofill as Mock).mockResolvedValue(false);
 
-            await Passkeys.autofill();
+            const result = await Passkeys.autofill();
 
+            expect(result).toBeUndefined();
             expect(fetchMock).not.toHaveBeenCalled();
         });
 
-        it("calls onSuccess when verification succeeds", async () => {
+        it("returns the verification response on success", async () => {
+            const mockResponse = { verified: true, redirect: "/dashboard" };
             fetchMock
                 .mockResolvedValueOnce({
                     ok: true,
@@ -238,21 +241,20 @@ describe("Passkeys", () => {
                 })
                 .mockResolvedValueOnce({
                     ok: true,
-                    json: () => Promise.resolve({ verified: true }),
+                    json: () => Promise.resolve(mockResponse),
                 });
             (startAuthentication as Mock).mockResolvedValue(mockCredential);
 
-            const onSuccess = vi.fn();
-            await Passkeys.autofill({ onSuccess });
+            const result = await Passkeys.autofill();
 
             expect(startAuthentication).toHaveBeenCalledWith({
                 optionsJSON: mockOptionsResponse.options,
                 useBrowserAutofill: true,
             });
-            expect(onSuccess).toHaveBeenCalled();
+            expect(result).toEqual(mockResponse);
         });
 
-        it("calls onError when an error occurs", async () => {
+        it("throws when an error occurs", async () => {
             fetchMock.mockResolvedValueOnce({
                 ok: true,
                 json: () => Promise.resolve(mockOptionsResponse),
@@ -261,31 +263,10 @@ describe("Passkeys", () => {
             const error = new Error("Test error");
             (startAuthentication as Mock).mockRejectedValue(error);
 
-            const onError = vi.fn();
-            await Passkeys.autofill({ onError });
-
-            expect(onError).toHaveBeenCalled();
+            await expect(Passkeys.autofill()).rejects.toThrow();
         });
 
-        it("does not call onSuccess when verified is false", async () => {
-            fetchMock
-                .mockResolvedValueOnce({
-                    ok: true,
-                    json: () => Promise.resolve(mockOptionsResponse),
-                })
-                .mockResolvedValueOnce({
-                    ok: true,
-                    json: () => Promise.resolve({ verified: false }),
-                });
-            (startAuthentication as Mock).mockResolvedValue(mockCredential);
-
-            const onSuccess = vi.fn();
-            await Passkeys.autofill({ onSuccess });
-
-            expect(onSuccess).not.toHaveBeenCalled();
-        });
-
-        it("silently ignores AbortError without calling onError", async () => {
+        it("returns undefined on AbortError without throwing", async () => {
             fetchMock.mockResolvedValueOnce({
                 ok: true,
                 json: () => Promise.resolve(mockOptionsResponse),
@@ -295,10 +276,9 @@ describe("Passkeys", () => {
             abortError.name = "AbortError";
             (startAuthentication as Mock).mockRejectedValue(abortError);
 
-            const onError = vi.fn();
-            await Passkeys.autofill({ onError });
+            const result = await Passkeys.autofill();
 
-            expect(onError).not.toHaveBeenCalled();
+            expect(result).toBeUndefined();
         });
     });
 

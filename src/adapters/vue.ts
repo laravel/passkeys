@@ -1,8 +1,9 @@
 import { ref } from "vue";
 import { Passkeys } from "../passkeys";
+import type { VerifyResponse } from "../types";
 
 type UsePasskeyLoginOptions = {
-    onSuccess?: () => void;
+    onSuccess?: (response: VerifyResponse) => void;
     onError?: (error: Error) => void;
 };
 
@@ -17,8 +18,8 @@ export function usePasskeyLogin({
         isLoading.value = true;
         error.value = null;
         try {
-            await Passkeys.verify();
-            onSuccess?.();
+            const response = await Passkeys.verify();
+            onSuccess?.(response);
         } catch (e) {
             error.value =
                 e instanceof Error ? e.message : "Authentication failed";
@@ -31,9 +32,9 @@ export function usePasskeyLogin({
     void Passkeys.isAutofillSupported().then((supported) => {
         if (supported) {
             void Passkeys.autofill()
-                .then((result) => {
-                    if (result?.verified) {
-                        onSuccess?.();
+                .then((response) => {
+                    if (response) {
+                        onSuccess?.(response);
                     }
                 })
                 .catch(() => {

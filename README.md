@@ -28,11 +28,18 @@ await Passkeys.verify();
 import { usePasskeyLogin, usePasskeyRegister } from "@laravel/passkeys/react";
 
 // Login
-function LoginButton() {
-    const { login, isLoading, error, isSupported } = usePasskeyLogin();
+function LoginPage() {
+    const { login, isLoading, error, isSupported } = usePasskeyLogin({
+        onSuccess: (response) => {
+            window.location.href = response.redirect;
+        },
+    });
 
     return (
         <div>
+            {/* Add webauthn to autocomplete to enable passkey autofill */}
+            <input type="email" autoComplete="email webauthn" />
+
             <button onClick={login} disabled={!isSupported || isLoading}>
                 {isLoading ? "Authenticating..." : "Sign in with passkey"}
             </button>
@@ -71,9 +78,20 @@ function RegisterForm() {
 <script setup>
 import { ref } from "vue";
 import { usePasskeyLogin, usePasskeyRegister } from "@laravel/passkeys/vue";
+import { router } from "@inertiajs/vue3";
 
-const { login, isLoading: loginLoading, error: loginError } = usePasskeyLogin();
+// Login
+const {
+    login,
+    isLoading: loginLoading,
+    error: loginError,
+} = usePasskeyLogin({
+    onSuccess: (response) => {
+        router.visit(response.redirect);
+    },
+});
 
+// Register
 const name = ref("");
 const {
     register,
@@ -83,7 +101,9 @@ const {
 </script>
 
 <template>
-    <!-- Login -->
+    <!-- Include webauthn in autocomplete to enable passkey autofill -->
+    <input type="email" autocomplete="email webauthn" />
+
     <button @click="login" :disabled="loginLoading">
         {{ loginLoading ? "Authenticating..." : "Sign in with passkey" }}
     </button>

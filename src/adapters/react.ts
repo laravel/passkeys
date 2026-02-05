@@ -39,8 +39,13 @@ export function usePasskeyLogin({
                             onSuccess?.(response);
                         }
                     })
-                    .catch(() => {
-                        /* Autofill errors are silently ignored */
+                    .catch((e) => {
+                        const message =
+                            e instanceof Error
+                                ? e.message
+                                : "Authentication failed";
+                        setError(message);
+                        onError?.(e as Error);
                     });
             }
         });

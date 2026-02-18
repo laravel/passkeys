@@ -144,7 +144,11 @@ export const Passkeys = {
                 request,
             );
         } catch (error) {
-            if (error instanceof Error && error.name === "AbortError") {
+            if (
+                error instanceof Error &&
+                (error.name === "AbortError" ||
+                    error.name === "NotAllowedError")
+            ) {
                 return undefined;
             }
 

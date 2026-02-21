@@ -1,24 +1,29 @@
 import { ref } from "vue";
 import { Passkeys } from "../passkeys";
-import type { VerifyResponse } from "../types";
+import type {
+    RegisterRouteOptions,
+    VerifyResponse,
+    VerifyRouteOptions,
+} from "../types";
 
-type UsePasskeyLoginOptions = {
+type UsePasskeyVerifyOptions = VerifyRouteOptions & {
     onSuccess?: (response: VerifyResponse) => void;
     onError?: (error: Error) => void;
 };
 
-export function usePasskeyLogin({
+export function usePasskeyVerify({
+    routes,
     onSuccess,
     onError,
-}: UsePasskeyLoginOptions = {}) {
+}: UsePasskeyVerifyOptions = {}) {
     const isLoading = ref(false);
     const error = ref<string | null>(null);
 
-    const login = async () => {
+    const verify = async () => {
         isLoading.value = true;
         error.value = null;
         try {
-            const response = await Passkeys.verify();
+            const response = await Passkeys.verify({ routes });
             onSuccess?.(response);
         } catch (e) {
             error.value =
@@ -31,7 +36,9 @@ export function usePasskeyLogin({
     // Set up autofill
     void Passkeys.isAutofillSupported().then((supported) => {
         if (supported) {
-            void Passkeys.autofill()
+            void Passkeys.autofill({
+                routes,
+            })
                 .then((response) => {
                     if (response) {
                         onSuccess?.(response);
@@ -48,19 +55,20 @@ export function usePasskeyLogin({
     });
 
     return {
-        login,
+        verify,
         isLoading,
         error,
         isSupported: Passkeys.isSupported(),
     };
 }
 
-type UsePasskeyRegisterOptions = {
+type UsePasskeyRegisterOptions = RegisterRouteOptions & {
     onSuccess?: () => void;
     onError?: (error: Error) => void;
 };
 
 export function usePasskeyRegister({
+    routes,
     onSuccess,
     onError,
 }: UsePasskeyRegisterOptions = {}) {
@@ -71,7 +79,10 @@ export function usePasskeyRegister({
         isLoading.value = true;
         error.value = null;
         try {
-            await Passkeys.register({ name });
+            await Passkeys.register({
+                name,
+                routes,
+            });
             onSuccess?.();
         } catch (e) {
             error.value =

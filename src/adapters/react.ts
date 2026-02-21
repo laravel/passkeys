@@ -1,24 +1,29 @@
 import { useState, useEffect } from "react";
 import { Passkeys } from "../passkeys";
-import type { VerifyResponse } from "../types";
+import type {
+    RegisterRouteOptions,
+    VerifyResponse,
+    VerifyRouteOptions,
+} from "../types";
 
-type UsePasskeyLoginOptions = {
+type UsePasskeyVerifyOptions = VerifyRouteOptions & {
     onSuccess?: (response: VerifyResponse) => void;
     onError?: (error: Error) => void;
 };
 
-export function usePasskeyLogin({
+export function usePasskeyVerify({
+    routes,
     onSuccess,
     onError,
-}: UsePasskeyLoginOptions = {}) {
+}: UsePasskeyVerifyOptions = {}) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const login = async () => {
+    const verify = async () => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await Passkeys.verify();
+            const response = await Passkeys.verify({ routes });
             onSuccess?.(response);
         } catch (e) {
             const message =
@@ -33,7 +38,9 @@ export function usePasskeyLogin({
     useEffect(() => {
         void Passkeys.isAutofillSupported().then((supported) => {
             if (supported) {
-                void Passkeys.autofill()
+                void Passkeys.autofill({
+                    routes,
+                })
                     .then((response) => {
                         if (response) {
                             onSuccess?.(response);
@@ -49,22 +56,23 @@ export function usePasskeyLogin({
                     });
             }
         });
-    }, []);
+    }, [routes?.options, routes?.submit]);
 
     return {
-        login,
+        verify,
         isLoading,
         error,
         isSupported: Passkeys.isSupported(),
     };
 }
 
-type UsePasskeyRegisterOptions = {
+type UsePasskeyRegisterOptions = RegisterRouteOptions & {
     onSuccess?: () => void;
     onError?: (error: Error) => void;
 };
 
 export function usePasskeyRegister({
+    routes,
     onSuccess,
     onError,
 }: UsePasskeyRegisterOptions = {}) {
@@ -75,7 +83,10 @@ export function usePasskeyRegister({
         setIsLoading(true);
         setError(null);
         try {
-            await Passkeys.register({ name });
+            await Passkeys.register({
+                name,
+                routes,
+            });
             onSuccess?.();
         } catch (e) {
             const message =

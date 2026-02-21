@@ -13,13 +13,13 @@ export type PasskeyRoutes = {
 
     /**
      * GET: Fetch authentication options from the server.
-     * @default '/passkeys/options'
+     * @default '/passkeys/login/options'
      */
     verifyOptions: string;
 
     /**
      * POST: Submit credential for verification.
-     * @default '/passkeys/verify'
+     * @default '/passkeys/login'
      */
     verifySubmit: string;
 };
@@ -30,22 +30,6 @@ export type PasskeyRoutes = {
 export const defaultRoutes: PasskeyRoutes = {
     registerOptions: "/user/passkeys/options",
     registerStore: "/user/passkeys",
-    verifyOptions: "/passkeys/options",
-    verifySubmit: "/passkeys/verify",
+    verifyOptions: "/passkeys/login/options",
+    verifySubmit: "/passkeys/login",
 };
-
-let routes: PasskeyRoutes = { ...defaultRoutes };
-
-/**
- * Configure custom routes for passkey operations.
- */
-export function configureRoutes(custom: Partial<PasskeyRoutes>): void {
-    routes = { ...routes, ...custom };
-}
-
-/**
- * Get the current route configuration.
- */
-export function getRoutes(): PasskeyRoutes {
-    return routes;
-}

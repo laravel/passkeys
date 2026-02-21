@@ -1,6 +1,6 @@
 # @laravel/passkeys
 
-A JavaScript client for passkey authentication designed to work with Laravel applications. It provides a clean API for browser-side WebAuthn ceremonies (registration and authentication).
+A JavaScript client for passkey authentication designed to work with Laravel applications. It provides a fluent API for browser-side WebAuthn ceremonies (registration and authentication).
 
 ## Installation
 
@@ -25,11 +25,11 @@ await Passkeys.verify();
 ### React
 
 ```jsx
-import { usePasskeyLogin, usePasskeyRegister } from "@laravel/passkeys/react";
+import { usePasskeyVerify, usePasskeyRegister } from "@laravel/passkeys/react";
 
 // Login
 function LoginPage() {
-    const { login, isLoading, error, isSupported } = usePasskeyLogin({
+    const { verify, isLoading, error, isSupported } = usePasskeyVerify({
         onSuccess: (response) => {
             window.location.href = response.redirect;
         },
@@ -40,7 +40,7 @@ function LoginPage() {
             {/* Add webauthn to autocomplete to enable passkey autofill */}
             <input type="email" autoComplete="email webauthn" />
 
-            <button onClick={login} disabled={!isSupported || isLoading}>
+            <button onClick={verify} disabled={!isSupported || isLoading}>
                 {isLoading ? "Authenticating..." : "Sign in with passkey"}
             </button>
             {error && <p className="error">{error}</p>}
@@ -77,15 +77,15 @@ function RegisterForm() {
 ```vue
 <script setup>
 import { ref } from "vue";
-import { usePasskeyLogin, usePasskeyRegister } from "@laravel/passkeys/vue";
+import { usePasskeyVerify, usePasskeyRegister } from "@laravel/passkeys/vue";
 import { router } from "@inertiajs/vue3";
 
 // Login
 const {
-    login,
-    isLoading: loginLoading,
-    error: loginError,
-} = usePasskeyLogin({
+    verify,
+    isLoading: verifyLoading,
+    error: verifyError,
+} = usePasskeyVerify({
     onSuccess: (response) => {
         router.visit(response.redirect);
     },
@@ -104,10 +104,10 @@ const {
     <!-- Include webauthn in autocomplete to enable passkey autofill -->
     <input type="email" autocomplete="email webauthn" />
 
-    <button @click="login" :disabled="loginLoading">
-        {{ loginLoading ? "Authenticating..." : "Sign in with passkey" }}
+    <button @click="verify" :disabled="verifyLoading">
+        {{ verifyLoading ? "Authenticating..." : "Sign in with passkey" }}
     </button>
-    <p v-if="loginError" class="error">{{ loginError }}</p>
+    <p v-if="verifyError" class="error">{{ verifyError }}</p>
 
     <!-- Register -->
     <input v-model="name" placeholder="Passkey name" />
@@ -124,12 +124,11 @@ const {
 
 | Method                  | Description                                       |
 | ----------------------- | ------------------------------------------------- |
-| `configure({ routes })` | Configure custom routes                           |
 | `isSupported()`         | Check if the browser supports passkeys            |
 | `isAutofillSupported()` | Check if the browser supports passkey autofill    |
-| `register({ name })`    | Register a new passkey for the authenticated user |
-| `verify()`              | Verify a passkey                                  |
-| `autofill()`            | Enable passkey autofill on the current page       |
+| `register({ name, routes? })` | Register a new passkey for the authenticated user |
+| `verify(options?)`      | Verify a passkey                                  |
+| `autofill(options?)`    | Enable passkey autofill on the current page       |
 | `cancel()`              | Cancel any pending passkey operation              |
 
 ## Expected Endpoints
@@ -140,8 +139,8 @@ This package handles communication with your Laravel application and expects the
 
 | Method | Route               | Purpose                            |
 | ------ | ------------------- | ---------------------------------- |
-| `GET`  | `/passkeys/options` | Fetch authentication options       |
-| `POST` | `/passkeys/verify`  | Verify credential and authenticate |
+| `GET`  | `/passkeys/login/options` | Fetch authentication options |
+| `POST` | `/passkeys/login`         | Verify credential and authenticate |
 
 ### Registration (Authenticated)
 
@@ -150,15 +149,62 @@ This package handles communication with your Laravel application and expects the
 | `GET`  | `/user/passkeys/options` | Fetch registration options |
 | `POST` | `/user/passkeys`         | Store new passkey          |
 
-### Custom Route Configuration
+### Per-Call Route Overrides
 
 ```js
-Passkeys.configure({
+await Passkeys.register({
+    name: "MacBook Pro",
     routes: {
-        verifyOptions: "/passkeys/options",
-        verifySubmit: "/passkeys/verify",
-        registerOptions: "/user/passkeys/options",
-        registerStore: "/user/passkeys",
+        options: "/user/security/passkeys/options",
+        submit: "/user/security/passkeys",
+    },
+});
+
+await Passkeys.verify({
+    routes: {
+        options: "/passkeys/confirm/options",
+        submit: "/passkeys/confirm",
+    },
+});
+```
+
+`register()`, `verify()`, and `autofill()` all use:
+
+```ts
+type RouteOverrides = {
+    routes?: {
+        options?: string;
+        submit?: string;
+    };
+};
+```
+
+### React / Vue Route Overrides
+
+Both `usePasskeyVerify` adapters accept:
+
+```js
+usePasskeyVerify({
+    routes: {
+        options: "/passkeys/confirm/options",
+        submit: "/passkeys/confirm",
+    },
+    onSuccess: (response) => {
+        window.location.href = response.redirect;
+    },
+});
+```
+
+Both `usePasskeyRegister` adapters accept:
+
+```js
+usePasskeyRegister({
+    routes: {
+        options: "/user/security/passkeys/options",
+        submit: "/user/security/passkeys",
+    },
+    onSuccess: () => {
+        window.location.reload();
     },
 });
 ```
@@ -172,5 +218,5 @@ This package uses TypeScript types from [`@simplewebauthn/browser`](https://www.
 | Entry Point               | Exports                                 |
 | ------------------------- | --------------------------------------- |
 | `@laravel/passkeys`       | `Passkeys`                              |
-| `@laravel/passkeys/react` | `usePasskeyLogin`, `usePasskeyRegister` |
-| `@laravel/passkeys/vue`   | `usePasskeyLogin`, `usePasskeyRegister` |
+| `@laravel/passkeys/react` | `usePasskeyVerify`, `usePasskeyRegister` |
+| `@laravel/passkeys/vue`   | `usePasskeyVerify`, `usePasskeyRegister` |

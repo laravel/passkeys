@@ -7,10 +7,11 @@ import {
 } from "@simplewebauthn/browser";
 import { get, post } from "./http";
 import { toPasskeyError, NotSupportedError } from "./errors";
-import { configureRoutes, getRoutes } from "./routes";
+import { defaultRoutes } from "./routes";
 import type {
     RegisterOptions,
-    PasskeyRoutes,
+    VerifyRouteOptions,
+    RouteOverrides,
     RegistrationOptionsResponse,
     VerifyOptionsResponse,
     RegistrationRequest,
@@ -23,15 +24,6 @@ import type {
  * Passkeys client for Laravel applications.
  */
 export const Passkeys = {
-    /**
-     * Configure the client.
-     */
-    configure(options: { routes?: Partial<PasskeyRoutes> }) {
-        if (options.routes) {
-            configureRoutes(options.routes);
-        }
-    },
-
     /**
      * Check if the browser supports passkeys.
      */
@@ -58,9 +50,14 @@ export const Passkeys = {
         this.cancel();
 
         try {
+            const routes = resolveRoutes(options, {
+                options: defaultRoutes.registerOptions,
+                submit: defaultRoutes.registerStore,
+            });
+
             const { options: optionsJSON } =
                 await get<RegistrationOptionsResponse>(
-                    getRoutes().registerOptions,
+                    routes.optionsRoute,
                 );
 
             const credential = await startRegistration({ optionsJSON });
@@ -71,7 +68,7 @@ export const Passkeys = {
             };
 
             return await post<RegistrationResponse>(
-                getRoutes().registerStore,
+                routes.submitRoute,
                 request,
             );
         } catch (error) {
@@ -82,7 +79,7 @@ export const Passkeys = {
     /**
      * Verify with a passkey.
      */
-    async verify(): Promise<VerifyResponse> {
+    async verify(options: VerifyRouteOptions = {}): Promise<VerifyResponse> {
         if (!this.isSupported()) {
             throw new NotSupportedError();
         }
@@ -91,8 +88,13 @@ export const Passkeys = {
         this.cancel();
 
         try {
+            const routes = resolveRoutes(options, {
+                options: defaultRoutes.verifyOptions,
+                submit: defaultRoutes.verifySubmit,
+            });
+
             const { options: optionsJSON } = await get<VerifyOptionsResponse>(
-                getRoutes().verifyOptions,
+                routes.optionsRoute,
             );
 
             const credential = await startAuthentication({ optionsJSON });
@@ -100,7 +102,7 @@ export const Passkeys = {
             const request: VerifyRequest = { credential };
 
             return await post<VerifyResponse>(
-                getRoutes().verifySubmit,
+                routes.submitRoute,
                 request,
             );
         } catch (error) {
@@ -117,7 +119,9 @@ export const Passkeys = {
      * Returns the verification response on success, or `undefined` if autofill
      * is not supported or was cancelled.
      */
-    async autofill(): Promise<VerifyResponse | undefined> {
+    async autofill(
+        options: VerifyRouteOptions = {},
+    ): Promise<VerifyResponse | undefined> {
         if (!this.isSupported()) {
             return undefined;
         }
@@ -128,8 +132,13 @@ export const Passkeys = {
         }
 
         try {
+            const routes = resolveRoutes(options, {
+                options: defaultRoutes.verifyOptions,
+                submit: defaultRoutes.verifySubmit,
+            });
+
             const { options: optionsJSON } = await get<VerifyOptionsResponse>(
-                getRoutes().verifyOptions,
+                routes.optionsRoute,
             );
 
             const credential = await startAuthentication({
@@ -140,7 +149,7 @@ export const Passkeys = {
             const request: VerifyRequest = { credential };
 
             return await post<VerifyResponse>(
-                getRoutes().verifySubmit,
+                routes.submitRoute,
                 request,
             );
         } catch (error) {
@@ -163,3 +172,22 @@ export const Passkeys = {
         WebAuthnAbortService.cancelCeremony();
     },
 };
+
+function resolveRoutes(
+    options: RouteOverrides,
+    defaults: {
+        options: string;
+        submit: string;
+    },
+): {
+    optionsRoute: string;
+    submitRoute: string;
+} {
+    const submitRoute = options.routes?.submit ?? defaults.submit;
+    const optionsRoute = options.routes?.options ?? defaults.options;
+
+    return {
+        optionsRoute,
+        submitRoute,
+    };
+}

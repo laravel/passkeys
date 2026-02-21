@@ -7,29 +7,47 @@ import type {
 
 export type { PasskeyRoutes } from "./routes";
 
+export type RouteOverrides = {
+    routes?: {
+        /**
+         * Override the options endpoint used before the ceremony.
+         */
+        options?: string;
+
+        /**
+         * Override the submit endpoint used after the ceremony.
+         */
+        submit?: string;
+    };
+};
+
+export type RegisterRouteOptions = RouteOverrides;
+
+export type VerifyRouteOptions = RouteOverrides;
+
 export type RegisterOptions = {
     /**
      * Human-readable name for this passkey (e.g., "MacBook Pro", "Work Laptop").
      */
     name: string;
-};
+} & RegisterRouteOptions;
 
 /**
- * Response from GET /passkeys/register/options
+ * Response from GET /user/passkeys/options
  */
 export type RegistrationOptionsResponse = {
     options: PublicKeyCredentialCreationOptionsJSON;
 };
 
 /**
- * Response from GET /passkeys/verify/options
+ * Response from GET /passkeys/login/options
  */
 export type VerifyOptionsResponse = {
     options: PublicKeyCredentialRequestOptionsJSON;
 };
 
 /**
- * Request body for POST /passkeys/register
+ * Request body for POST /user/passkeys
  */
 export type RegistrationRequest = {
     name: string;
@@ -37,14 +55,14 @@ export type RegistrationRequest = {
 };
 
 /**
- * Request body for POST /passkeys/verify
+ * Request body for POST /passkeys/login
  */
 export type VerifyRequest = {
     credential: AuthenticationResponseJSON;
 };
 
 /**
- * Response from POST /passkeys/register
+ * Response from POST /user/passkeys
  */
 export type RegistrationResponse = {
     id: string;
@@ -52,9 +70,8 @@ export type RegistrationResponse = {
 };
 
 /**
- * Response from POST /passkeys/verify
+ * Response from POST /passkeys/login
  */
 export type VerifyResponse = {
-    verified: boolean;
     redirect?: string;
 };

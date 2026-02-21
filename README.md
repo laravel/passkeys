@@ -122,14 +122,14 @@ const {
 
 ### Public Methods
 
-| Method                  | Description                                       |
-| ----------------------- | ------------------------------------------------- |
-| `isSupported()`         | Check if the browser supports passkeys            |
-| `isAutofillSupported()` | Check if the browser supports passkey autofill    |
+| Method                        | Description                                       |
+| ----------------------------- | ------------------------------------------------- |
+| `isSupported()`               | Check if the browser supports passkeys            |
+| `isAutofillSupported()`       | Check if the browser supports passkey autofill    |
 | `register({ name, routes? })` | Register a new passkey for the authenticated user |
-| `verify(options?)`      | Verify a passkey                                  |
-| `autofill(options?)`    | Enable passkey autofill on the current page       |
-| `cancel()`              | Cancel any pending passkey operation              |
+| `verify(options?)`            | Verify a passkey                                  |
+| `autofill(options?)`          | Enable passkey autofill on the current page       |
+| `cancel()`                    | Cancel any pending passkey operation              |
 
 ## Expected Endpoints
 
@@ -137,9 +137,9 @@ This package handles communication with your Laravel application and expects the
 
 ### Authentication (Guest)
 
-| Method | Route               | Purpose                            |
-| ------ | ------------------- | ---------------------------------- |
-| `GET`  | `/passkeys/login/options` | Fetch authentication options |
+| Method | Route                     | Purpose                            |
+| ------ | ------------------------- | ---------------------------------- |
+| `GET`  | `/passkeys/login/options` | Fetch authentication options       |
 | `POST` | `/passkeys/login`         | Verify credential and authenticate |
 
 ### Registration (Authenticated)
@@ -215,8 +215,8 @@ This package uses TypeScript types from [`@simplewebauthn/browser`](https://www.
 
 ## Package Exports
 
-| Entry Point               | Exports                                 |
-| ------------------------- | --------------------------------------- |
-| `@laravel/passkeys`       | `Passkeys`                              |
+| Entry Point               | Exports                                  |
+| ------------------------- | ---------------------------------------- |
+| `@laravel/passkeys`       | `Passkeys`                               |
 | `@laravel/passkeys/react` | `usePasskeyVerify`, `usePasskeyRegister` |
 | `@laravel/passkeys/vue`   | `usePasskeyVerify`, `usePasskeyRegister` |

@@ -56,9 +56,7 @@ export const Passkeys = {
             });
 
             const { options: optionsJSON } =
-                await get<RegistrationOptionsResponse>(
-                    routes.optionsRoute,
-                );
+                await get<RegistrationOptionsResponse>(routes.optionsRoute);
 
             const credential = await startRegistration({ optionsJSON });
 
@@ -101,10 +99,7 @@ export const Passkeys = {
 
             const request: VerifyRequest = { credential };
 
-            return await post<VerifyResponse>(
-                routes.submitRoute,
-                request,
-            );
+            return await post<VerifyResponse>(routes.submitRoute, request);
         } catch (error) {
             throw toPasskeyError(error);
         }
@@ -148,10 +143,7 @@ export const Passkeys = {
 
             const request: VerifyRequest = { credential };
 
-            return await post<VerifyResponse>(
-                routes.submitRoute,
-                request,
-            );
+            return await post<VerifyResponse>(routes.submitRoute, request);
         } catch (error) {
             if (
                 error instanceof Error &&

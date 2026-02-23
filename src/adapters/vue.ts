@@ -1,4 +1,4 @@
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { toError } from "../errors";
 import { Passkeys } from "../passkeys";
 import type {
@@ -71,12 +71,10 @@ export const usePasskeyVerify = ({
         } finally {
             isLoading.value = false;
         }
+    });
 
-        return () => {
-            isLoading.value = false;
-            error.value = null;
-            Passkeys.cancel();
-        };
+    onUnmounted(() => {
+        Passkeys.cancel();
     });
 
     return {

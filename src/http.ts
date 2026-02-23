@@ -7,7 +7,9 @@ type CsrfToken = {
  * Get the CSRF token.
  */
 const getCsrfToken = (): CsrfToken | null => {
-    if (typeof document === "undefined") return null;
+    if (typeof document === "undefined") {
+        return null;
+    }
 
     // First, try the meta tag (traditional Blade setup)
     const meta = document.querySelector('meta[name="csrf-token"]');

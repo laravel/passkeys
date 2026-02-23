@@ -33,6 +33,8 @@ const config = [
                 "warn",
                 { argsIgnorePattern: "^_" },
             ],
+            "brace-style": ["error", "1tbs", { "allowSingleLine": false }],
+            "curly": ["error", "all"],
             "no-console": "warn",
             "prefer-const": "off",
             "padding-line-between-statements": [

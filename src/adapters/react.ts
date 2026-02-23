@@ -56,6 +56,9 @@ export const usePasskeyVerify = ({
             return;
         }
 
+        setIsLoading(true);
+        setError(null);
+
         try {
             const response = await Passkeys.autofill({ routes });
 
@@ -66,6 +69,8 @@ export const usePasskeyVerify = ({
             const err = toError(e, "Authentication failed");
             setError(err.message);
             onErrorRef.current?.(err);
+        } finally {
+            setIsLoading(false);
         }
     }, [routes]);
 

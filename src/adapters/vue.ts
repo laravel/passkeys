@@ -1,4 +1,5 @@
 import { onMounted, ref } from "vue";
+import { toError } from "../errors";
 import { Passkeys } from "../passkeys";
 import type {
     RegisterRouteOptions,
@@ -14,10 +15,6 @@ type UsePasskeyVerifyOptions = VerifyRouteOptions & {
 type UsePasskeyRegisterOptions = RegisterRouteOptions & {
     onSuccess?: () => void;
     onError?: (error: Error) => void;
-};
-
-const toError = (e: unknown, fallbackMessage: string): Error => {
-    return e instanceof Error ? e : new Error(String(e) || fallbackMessage);
 };
 
 export const usePasskeyVerify = ({

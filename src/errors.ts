@@ -71,3 +71,7 @@ export const toPasskeyError = (error: unknown): PasskeyError => {
             return new PasskeyError(error.message);
     }
 };
+
+export const toError = (e: unknown, fallbackMessage: string): Error => {
+    return e instanceof Error ? e : new Error(String(e) || fallbackMessage);
+};

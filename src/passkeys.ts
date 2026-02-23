@@ -1,23 +1,23 @@
 import {
-    startRegistration,
-    startAuthentication,
     browserSupportsWebAuthn,
     browserSupportsWebAuthnAutofill,
+    startAuthentication,
+    startRegistration,
     WebAuthnAbortService,
 } from "@simplewebauthn/browser";
+import { NotSupportedError, toPasskeyError } from "./errors";
 import { get, post } from "./http";
-import { toPasskeyError, NotSupportedError } from "./errors";
 import { defaultRoutes } from "./routes";
 import type {
     RegisterOptions,
-    VerifyRouteOptions,
-    RouteOverrides,
     RegistrationOptionsResponse,
-    VerifyOptionsResponse,
     RegistrationRequest,
-    VerifyRequest,
     RegistrationResponse,
+    RouteOverrides,
+    VerifyOptionsResponse,
+    VerifyRequest,
     VerifyResponse,
+    VerifyRouteOptions,
 } from "./types";
 
 /**
@@ -118,13 +118,13 @@ export const Passkeys = {
         options: VerifyRouteOptions = {},
     ): Promise<VerifyResponse | undefined> {
         if (!this.isSupported()) {
-            return undefined;
+            return;
         }
 
         const supportsAutofill = await this.isAutofillSupported();
 
         if (!supportsAutofill) {
-            return undefined;
+            return;
         }
 
         try {
@@ -148,10 +148,9 @@ export const Passkeys = {
         } catch (error) {
             if (
                 error instanceof Error &&
-                (error.name === "AbortError" ||
-                    error.name === "NotAllowedError")
+                ["AbortError", "NotAllowedError"].includes(error.name)
             ) {
-                return undefined;
+                return;
             }
 
             throw toPasskeyError(error);
@@ -166,21 +165,10 @@ export const Passkeys = {
     },
 };
 
-function resolveRoutes(
+const resolveRoutes = (
     options: RouteOverrides,
-    defaults: {
-        options: string;
-        submit: string;
-    },
-): {
-    optionsRoute: string;
-    submitRoute: string;
-} {
-    const submitRoute = options.routes?.submit ?? defaults.submit;
-    const optionsRoute = options.routes?.options ?? defaults.options;
-
-    return {
-        optionsRoute,
-        submitRoute,
-    };
-}
+    defaults: { options: string; submit: string },
+): { optionsRoute: string; submitRoute: string } => ({
+    optionsRoute: options.routes?.options ?? defaults.options,
+    submitRoute: options.routes?.submit ?? defaults.submit,
+});

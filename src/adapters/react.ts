@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Passkeys } from "../passkeys";
 import type {
     RegisterRouteOptions,
@@ -23,6 +23,11 @@ export const usePasskeyVerify = ({
 }: UsePasskeyVerifyOptions = {}) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const onSuccessRef = useRef(onSuccess);
+    const onErrorRef = useRef(onError);
+
+    onSuccessRef.current = onSuccess;
+    onErrorRef.current = onError;
 
     const verify = useCallback(async (): Promise<void> => {
         setIsLoading(true);
@@ -30,16 +35,16 @@ export const usePasskeyVerify = ({
 
         try {
             const response = await Passkeys.verify({ routes });
-            onSuccess?.(response);
+            onSuccessRef.current?.(response);
         } catch (e) {
             const message =
                 e instanceof Error ? e.message : "Authentication failed";
             setError(message);
-            onError?.(e as Error);
+            onErrorRef.current?.(e as Error);
         } finally {
             setIsLoading(false);
         }
-    }, [routes, onSuccess, onError]);
+    }, [routes]);
 
     const attemptToAutofill = useCallback(async (): Promise<void> => {
         const supported = await Passkeys.isAutofillSupported();
@@ -52,19 +57,19 @@ export const usePasskeyVerify = ({
             const response = await Passkeys.autofill({ routes });
 
             if (response) {
-                onSuccess?.(response);
+                onSuccessRef.current?.(response);
             }
         } catch (e) {
             const message =
                 e instanceof Error ? e.message : "Authentication failed";
             setError(message);
-            onError?.(e as Error);
+            onErrorRef.current?.(e as Error);
         }
-    }, [routes, onSuccess, onError]);
+    }, [routes]);
 
     useEffect(() => {
         void attemptToAutofill();
-    }, [routes?.options, routes?.submit]);
+    }, [attemptToAutofill]);
 
     return {
         verify,

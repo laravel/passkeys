@@ -1,10 +1,16 @@
 /// <reference types="vitest" />
+import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { resolve } from "path";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
 
 export default defineConfig({
     plugins: [
+        svelte({
+            compilerOptions: {
+                allowNonSvelteComponents: true,
+            },
+        }),
         dts({
             insertTypesEntry: true,
             include: ["src/**/*.ts"],
@@ -17,17 +23,12 @@ export default defineConfig({
                 react: resolve(__dirname, "src/adapters/react.ts"),
                 svelte: resolve(__dirname, "src/adapters/svelte.ts"),
                 vue: resolve(__dirname, "src/adapters/vue.ts"),
+                svelte: resolve(__dirname, "src/adapters/svelte.svelte.ts"),
             },
             formats: ["es"],
         },
         rollupOptions: {
-            external: [
-                "@simplewebauthn/browser",
-                "react",
-                "svelte",
-                "svelte/store",
-                "vue",
-            ],
+            external: ["@simplewebauthn/browser", "react", "vue", "svelte"],
             output: {
                 entryFileNames: "[name].js",
             },

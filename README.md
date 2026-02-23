@@ -126,52 +126,37 @@ const {
 ### Svelte
 
 ```svelte
-<script lang="ts">
-    import {
-        usePasskeyVerify,
-        usePasskeyRegister,
-    } from "@laravel/passkeys/svelte";
+<script>
+    import { usePasskeyVerify, usePasskeyRegister } from "@laravel/passkeys/svelte";
 
-    // Login
-    const {
-        verify,
-        isLoading: verifyLoading,
-        error: verifyError,
-    } = usePasskeyVerify({
-        onSuccess: (response) => {
-            if (response.redirect) {
-                window.location.href = response.redirect;
-            }
-        },
-    });
+    const { verify, isLoading: verifyLoading, error: verifyError, isSupported } =
+        usePasskeyVerify({
+            onSuccess: (response) => {
+                if (response.redirect) window.location.href = response.redirect;
+            },
+        });
 
-    // Register
-    let name = "";
-    const {
-        register,
-        isLoading: registerLoading,
-        error: registerError,
-    } = usePasskeyRegister();
+    let name = $state("");
+    const { register, isLoading: registerLoading, error: registerError } =
+        usePasskeyRegister();
 </script>
 
 <!-- Include webauthn in autocomplete to enable passkey autofill -->
-<input type="text" autocomplete="email webauthn" />
+<input type="email" autocomplete="email webauthn" />
 
-<button on:click={verify} disabled={$verifyLoading}>
-    {$verifyLoading ? "Authenticating..." : "Sign in with passkey"}
+<button onclick={verify} disabled={!isSupported || verifyLoading}>
+    {verifyLoading ? "Authenticating..." : "Sign in with passkey"}
 </button>
-{#if $verifyError}
-    <p class="error">{$verifyError}</p>
-{/if}
+{#if verifyError}<p class="error">{verifyError}</p>{/if}
 
-<!-- Register -->
 <input bind:value={name} placeholder="Passkey name" />
-<button on:click={() => register(name)} disabled={$registerLoading || !name}>
-    {$registerLoading ? "Registering..." : "Add passkey"}
+<button
+    onclick={() => register(name)}
+    disabled={registerLoading || !name}
+>
+    {registerLoading ? "Registering..." : "Add passkey"}
 </button>
-{#if $registerError}
-    <p class="error">{$registerError}</p>
-{/if}
+{#if registerError}<p class="error">{registerError}</p>{/if}
 ```
 
 ## Core API
@@ -237,7 +222,7 @@ type RouteOverrides = {
 
 ### React / Vue / Svelte Route Overrides
 
-All framework `usePasskeyVerify` adapters accept:
+The `usePasskeyVerify` adapters accept:
 
 ```js
 usePasskeyVerify({
@@ -253,7 +238,7 @@ usePasskeyVerify({
 });
 ```
 
-All framework `usePasskeyRegister` adapters accept:
+The `usePasskeyRegister` adapters accept:
 
 ```js
 usePasskeyRegister({
@@ -275,9 +260,9 @@ This package uses TypeScript types from [`@simplewebauthn/browser`](https://www.
 
 ## Package Exports
 
-| Entry Point                | Exports                                                                                                                             |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `@laravel/passkeys`        | `Passkeys`, `defaultRoutes`, `PasskeyError`, `NotSupportedError`, `UserCancelledError`, `PasskeyExistsError`, `NoPasskeyFoundError` |
-| `@laravel/passkeys/react`  | `usePasskeyVerify`, `usePasskeyRegister`                                                                                            |
-| `@laravel/passkeys/vue`    | `usePasskeyVerify`, `usePasskeyRegister`                                                                                            |
-| `@laravel/passkeys/svelte` | `usePasskeyVerify`, `usePasskeyRegister`                                                                                            |
+| Entry Point                | Exports                                  |
+| -------------------------- | ---------------------------------------- |
+| `@laravel/passkeys`        | `Passkeys`                               |
+| `@laravel/passkeys/react`  | `usePasskeyVerify`, `usePasskeyRegister` |
+| `@laravel/passkeys/vue`    | `usePasskeyVerify`, `usePasskeyRegister` |
+| `@laravel/passkeys/svelte` | `usePasskeyVerify`, `usePasskeyRegister` |

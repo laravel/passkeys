@@ -16,6 +16,10 @@ type UsePasskeyRegisterOptions = RegisterRouteOptions & {
     onError?: (error: Error) => void;
 };
 
+const toError = (e: unknown, fallbackMessage: string): Error => {
+    return e instanceof Error ? e : new Error(String(e) || fallbackMessage);
+};
+
 export const usePasskeyVerify = ({
     routes,
     onSuccess,
@@ -37,10 +41,9 @@ export const usePasskeyVerify = ({
             const response = await Passkeys.verify({ routes });
             onSuccessRef.current?.(response);
         } catch (e) {
-            const message =
-                e instanceof Error ? e.message : "Authentication failed";
-            setError(message);
-            onErrorRef.current?.(e as Error);
+            const err = toError(e, "Authentication failed");
+            setError(err.message);
+            onErrorRef.current?.(err);
         } finally {
             setIsLoading(false);
         }
@@ -60,10 +63,9 @@ export const usePasskeyVerify = ({
                 onSuccessRef.current?.(response);
             }
         } catch (e) {
-            const message =
-                e instanceof Error ? e.message : "Authentication failed";
-            setError(message);
-            onErrorRef.current?.(e as Error);
+            const err = toError(e, "Authentication failed");
+            setError(err.message);
+            onErrorRef.current?.(err);
         }
     }, [routes]);
 
@@ -101,10 +103,9 @@ export function usePasskeyRegister({
                 });
                 onSuccess?.();
             } catch (e) {
-                const message =
-                    e instanceof Error ? e.message : "Registration failed";
-                setError(message);
-                onError?.(e as Error);
+                const err = toError(e, "Registration failed");
+                setError(err.message);
+                onError?.(err);
             } finally {
                 setIsLoading(false);
             }

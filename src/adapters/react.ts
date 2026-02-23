@@ -24,11 +24,14 @@ export const usePasskeyVerify = ({
 }: UsePasskeyVerifyOptions = {}) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
     const onSuccessRef = useRef(onSuccess);
     const onErrorRef = useRef(onError);
+    const routesRef = useRef(routes);
 
     onSuccessRef.current = onSuccess;
     onErrorRef.current = onError;
+    routesRef.current = routes;
 
     const verify = useCallback(async (): Promise<void> => {
         setIsLoading(true);
@@ -46,34 +49,36 @@ export const usePasskeyVerify = ({
         }
     }, [routes]);
 
-    const attemptToAutofill = useCallback(async (): Promise<void> => {
-        const supported = await Passkeys.isAutofillSupported();
-
-        if (!supported) {
-            return;
-        }
-
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            const response = await Passkeys.autofill({ routes });
-
-            if (response) {
-                onSuccessRef.current?.(response);
-            }
-        } catch (e) {
-            const err = toError(e, "Authentication failed");
-            setError(err.message);
-            onErrorRef.current?.(err);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [routes]);
-
     useEffect(() => {
+        const attemptToAutofill = async (): Promise<void> => {
+            const supported = await Passkeys.isAutofillSupported();
+
+            if (!supported) {
+                return;
+            }
+
+            setIsLoading(true);
+            setError(null);
+
+            try {
+                const response = await Passkeys.autofill({
+                    routes: routesRef.current,
+                });
+
+                if (response) {
+                    onSuccessRef.current?.(response);
+                }
+            } catch (e) {
+                const err = toError(e, "Authentication failed");
+                setError(err.message);
+                onErrorRef.current?.(err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
         void attemptToAutofill();
-    }, [attemptToAutofill]);
+    }, []);
 
     const isSupported = useMemo(() => Passkeys.isSupported(), []);
 

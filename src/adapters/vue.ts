@@ -92,7 +92,6 @@ export const usePasskeyRegister = ({
 }: UsePasskeyRegisterOptions = {}) => {
     const isLoading = ref(false);
     const error = ref<string | null>(null);
-    const isSupported = ref(Passkeys.isSupported());
 
     const register = async (name: string) => {
         isLoading.value = true;
@@ -118,6 +117,6 @@ export const usePasskeyRegister = ({
         register,
         isLoading,
         error,
-        isSupported: isSupported.value,
+        isSupported: Passkeys.isSupported(),
     };
 };

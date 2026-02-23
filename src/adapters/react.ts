@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Passkeys } from "../passkeys";
 import type {
     RegisterRouteOptions,
@@ -71,11 +71,13 @@ export const usePasskeyVerify = ({
         void attemptToAutofill();
     }, [attemptToAutofill]);
 
+    const isSupported = useMemo(() => Passkeys.isSupported(), []);
+
     return {
         verify,
         isLoading,
         error,
-        isSupported: Passkeys.isSupported(),
+        isSupported,
     };
 };
 
@@ -110,10 +112,12 @@ export function usePasskeyRegister({
         [routes, onSuccess, onError],
     );
 
+    const isSupported = useMemo(() => Passkeys.isSupported(), []);
+
     return {
         register,
         isLoading,
         error,
-        isSupported: Passkeys.isSupported(),
+        isSupported,
     };
 }

@@ -11,11 +11,16 @@ type UsePasskeyVerifyOptions = VerifyRouteOptions & {
     onError?: (error: Error) => void;
 };
 
-export function usePasskeyVerify({
+type UsePasskeyRegisterOptions = RegisterRouteOptions & {
+    onSuccess?: () => void;
+    onError?: (error: Error) => void;
+};
+
+export const usePasskeyVerify = ({
     routes,
     onSuccess,
     onError,
-}: UsePasskeyVerifyOptions = {}) {
+}: UsePasskeyVerifyOptions = {}) => {
     const isLoading = ref(false);
     const error = ref<string | null>(null);
 
@@ -61,18 +66,13 @@ export function usePasskeyVerify({
         error,
         isSupported: Passkeys.isSupported(),
     };
-}
-
-type UsePasskeyRegisterOptions = RegisterRouteOptions & {
-    onSuccess?: () => void;
-    onError?: (error: Error) => void;
 };
 
-export function usePasskeyRegister({
+export const usePasskeyRegister = ({
     routes,
     onSuccess,
     onError,
-}: UsePasskeyRegisterOptions = {}) {
+}: UsePasskeyRegisterOptions = {}) => {
     const isLoading = ref(false);
     const error = ref<string | null>(null);
 
@@ -100,4 +100,4 @@ export function usePasskeyRegister({
         error,
         isSupported: Passkeys.isSupported(),
     };
-}
+};

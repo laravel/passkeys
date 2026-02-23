@@ -41,28 +41,29 @@ export const usePasskeyVerify = ({
         }
     }, [routes, onSuccess, onError]);
 
-    // Set up autofill on mount
-    useEffect(() => {
-        void Passkeys.isAutofillSupported().then((supported) => {
-            if (supported) {
-                void Passkeys.autofill({
-                    routes,
-                })
-                    .then((response) => {
-                        if (response) {
-                            onSuccess?.(response);
-                        }
-                    })
-                    .catch((e) => {
-                        const message =
-                            e instanceof Error
-                                ? e.message
-                                : "Authentication failed";
-                        setError(message);
-                        onError?.(e as Error);
-                    });
+    const attemptToAutofill = useCallback(async (): Promise<void> => {
+        const supported = await Passkeys.isAutofillSupported();
+
+        if (!supported) {
+            return;
+        }
+
+        try {
+            const response = await Passkeys.autofill({ routes });
+
+            if (response) {
+                onSuccess?.(response);
             }
-        });
+        } catch (e) {
+            const message =
+                e instanceof Error ? e.message : "Authentication failed";
+            setError(message);
+            onError?.(e as Error);
+        }
+    }, [routes, onSuccess, onError]);
+
+    useEffect(() => {
+        void attemptToAutofill();
     }, [routes?.options, routes?.submit]);
 
     return {

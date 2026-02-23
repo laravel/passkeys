@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Passkeys } from "../passkeys";
 import type {
     RegisterRouteOptions,
@@ -11,15 +11,20 @@ type UsePasskeyVerifyOptions = VerifyRouteOptions & {
     onError?: (error: Error) => void;
 };
 
-export function usePasskeyVerify({
+type UsePasskeyRegisterOptions = RegisterRouteOptions & {
+    onSuccess?: () => void;
+    onError?: (error: Error) => void;
+};
+
+export const usePasskeyVerify = ({
     routes,
     onSuccess,
     onError,
-}: UsePasskeyVerifyOptions = {}) {
+}: UsePasskeyVerifyOptions = {}) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const verify = async () => {
+    const verify = useCallback(async (): Promise<void> => {
         setIsLoading(true);
         setError(null);
 
@@ -31,9 +36,10 @@ export function usePasskeyVerify({
                 e instanceof Error ? e.message : "Authentication failed";
             setError(message);
             onError?.(e as Error);
+        } finally {
             setIsLoading(false);
         }
-    };
+    }, [routes, onSuccess, onError]);
 
     // Set up autofill on mount
     useEffect(() => {
@@ -65,11 +71,6 @@ export function usePasskeyVerify({
         error,
         isSupported: Passkeys.isSupported(),
     };
-}
-
-type UsePasskeyRegisterOptions = RegisterRouteOptions & {
-    onSuccess?: () => void;
-    onError?: (error: Error) => void;
 };
 
 export function usePasskeyRegister({
@@ -80,7 +81,7 @@ export function usePasskeyRegister({
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const register = async (name: string) => {
+    const register = useCallback(async (name: string): Promise<void> => {
         setIsLoading(true);
         setError(null);
 
@@ -95,9 +96,10 @@ export function usePasskeyRegister({
                 e instanceof Error ? e.message : "Registration failed";
             setError(message);
             onError?.(e as Error);
+        } finally {
             setIsLoading(false);
         }
-    };
+    }, [routes, onSuccess, onError]);
 
     return {
         register,

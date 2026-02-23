@@ -82,25 +82,28 @@ export function usePasskeyRegister({
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const register = useCallback(async (name: string): Promise<void> => {
-        setIsLoading(true);
-        setError(null);
+    const register = useCallback(
+        async (name: string): Promise<void> => {
+            setIsLoading(true);
+            setError(null);
 
-        try {
-            await Passkeys.register({
-                name,
-                routes,
-            });
-            onSuccess?.();
-        } catch (e) {
-            const message =
-                e instanceof Error ? e.message : "Registration failed";
-            setError(message);
-            onError?.(e as Error);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [routes, onSuccess, onError]);
+            try {
+                await Passkeys.register({
+                    name,
+                    routes,
+                });
+                onSuccess?.();
+            } catch (e) {
+                const message =
+                    e instanceof Error ? e.message : "Registration failed";
+                setError(message);
+                onError?.(e as Error);
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [routes, onSuccess, onError],
+    );
 
     return {
         register,

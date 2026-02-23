@@ -12,30 +12,42 @@ const getCsrfToken = (): CsrfToken | null => {
     }
 
     // First, try the meta tag (traditional Blade setup)
+    // Then fall back to the XSRF-TOKEN cookie (Sanctum SPA setup)
+    return getCsrfTokenFromMetaTag() || getCsrfTokenFromCookie();
+};
+
+/**
+ * Get the CSRF token from the meta tag.
+ */
+const getCsrfTokenFromMetaTag = (): CsrfToken | null => {
     const meta = document.querySelector('meta[name="csrf-token"]');
 
-    if (meta) {
-        const value = meta.getAttribute("content");
-
-        if (value) {
-            return { header: "X-CSRF-TOKEN", value };
-        }
+    if (!meta) {
+        return null;
     }
 
-    // Fall back to XSRF-TOKEN cookie (Sanctum SPA setup)
+    const value = meta.getAttribute("content");
+
+    return value ? { header: "X-CSRF-TOKEN", value } : null;
+};
+
+/**
+ * Get the CSRF token from the XSRF-TOKEN cookie.
+ */
+const getCsrfTokenFromCookie = (): CsrfToken | null => {
     const cookie = document.cookie
         .split("; ")
         .find((row) => row.startsWith("XSRF-TOKEN="));
 
-    if (cookie) {
-        const value = cookie.split("=")[1];
-
-        if (value) {
-            return { header: "X-XSRF-TOKEN", value: decodeURIComponent(value) };
-        }
+    if (!cookie) {
+        return null;
     }
 
-    return null;
+    const value = cookie.split("=")[1];
+
+    return value
+        ? { header: "X-XSRF-TOKEN", value: decodeURIComponent(value) }
+        : null;
 };
 
 /**

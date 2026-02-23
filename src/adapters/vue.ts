@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { Passkeys } from "../passkeys";
 import type {
     RegisterRouteOptions,
@@ -14,6 +14,10 @@ type UsePasskeyVerifyOptions = VerifyRouteOptions & {
 type UsePasskeyRegisterOptions = RegisterRouteOptions & {
     onSuccess?: () => void;
     onError?: (error: Error) => void;
+};
+
+const toError = (e: unknown, fallbackMessage: string): Error => {
+    return e instanceof Error ? e : new Error(String(e) || fallbackMessage);
 };
 
 export const usePasskeyVerify = ({
@@ -32,31 +36,40 @@ export const usePasskeyVerify = ({
             const response = await Passkeys.verify({ routes });
             onSuccess?.(response);
         } catch (e) {
-            error.value =
-                e instanceof Error ? e.message : "Authentication failed";
-            onError?.(e as Error);
+            const err = toError(e, "Authentication failed");
+
+            error.value = err.message;
+            onError?.(err);
+        } finally {
             isLoading.value = false;
         }
     };
 
-    // Set up autofill
-    void Passkeys.isAutofillSupported().then((supported) => {
-        if (supported) {
-            void Passkeys.autofill({
+    onMounted(async () => {
+        // Set up autofill
+        const supported = await Passkeys.isAutofillSupported();
+
+        if (!supported) {
+            return;
+        }
+
+        isLoading.value = true;
+        error.value = null;
+
+        try {
+            const response = await Passkeys.autofill({
                 routes,
-            })
-                .then((response) => {
-                    if (response) {
-                        onSuccess?.(response);
-                    }
-                })
-                .catch((e) => {
-                    error.value =
-                        e instanceof Error
-                            ? e.message
-                            : "Authentication failed";
-                    onError?.(e as Error);
-                });
+            });
+            if (response) {
+                onSuccess?.(response);
+            }
+        } catch (e) {
+            const err = toError(e, "Authentication failed");
+
+            error.value = err.message;
+            onError?.(err);
+        } finally {
+            isLoading.value = false;
         }
     });
 
@@ -87,9 +100,11 @@ export const usePasskeyRegister = ({
             });
             onSuccess?.();
         } catch (e) {
-            error.value =
-                e instanceof Error ? e.message : "Registration failed";
-            onError?.(e as Error);
+            const err = toError(e, "Registration failed");
+
+            error.value = err.message;
+            onError?.(err);
+        } finally {
             isLoading.value = false;
         }
     };

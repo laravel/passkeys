@@ -122,6 +122,7 @@ export const Passkeys = {
         }
 
         const supportsAutofill = await this.isAutofillSupported();
+
         if (!supportsAutofill) {
             return undefined;
         }

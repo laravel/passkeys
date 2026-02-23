@@ -28,6 +28,9 @@ jobs:
             - name: Format code
               run: npm run format
 
+            - name: Fix lint issues
+              run: npm run lint -- --fix
+
             - name: Commit linted files
               uses: stefanzweifel/git-auto-commit-action@v5
               with:

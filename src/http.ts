@@ -1,18 +1,20 @@
-interface CsrfToken {
+type CsrfToken = {
     header: string;
     value: string;
-}
+};
 
 /**
  * Get the CSRF token.
  */
-function getCsrfToken(): CsrfToken | null {
+const getCsrfToken = (): CsrfToken | null => {
     if (typeof document === "undefined") return null;
 
     // First, try the meta tag (traditional Blade setup)
     const meta = document.querySelector('meta[name="csrf-token"]');
+
     if (meta) {
         const value = meta.getAttribute("content");
+
         if (value) {
             return { header: "X-CSRF-TOKEN", value };
         }
@@ -25,18 +27,19 @@ function getCsrfToken(): CsrfToken | null {
 
     if (cookie) {
         const value = cookie.split("=")[1];
+
         if (value) {
             return { header: "X-XSRF-TOKEN", value: decodeURIComponent(value) };
         }
     }
 
     return null;
-}
+};
 
 /**
  * Make a GET request to the Laravel backend.
  */
-export async function get<T>(url: string): Promise<T> {
+export const get = async <T>(url: string): Promise<T> => {
     const response = await fetch(url, {
         method: "GET",
         headers: {
@@ -50,12 +53,12 @@ export async function get<T>(url: string): Promise<T> {
     }
 
     return response.json() as Promise<T>;
-}
+};
 
 /**
  * Make a POST request to the Laravel backend.
  */
-export async function post<T>(url: string, data: unknown): Promise<T> {
+export const post = async <T>(url: string, data: unknown): Promise<T> => {
     const csrf = getCsrfToken();
 
     const headers: Record<string, string> = {
@@ -79,16 +82,17 @@ export async function post<T>(url: string, data: unknown): Promise<T> {
     }
 
     return response.json() as Promise<T>;
-}
+};
 
 /**
  * Handle error responses from the server.
  */
-async function handleErrorResponse(response: Response): Promise<never> {
+const handleErrorResponse = async (response: Response): Promise<never> => {
     let message = `Request failed with status ${response.status}`;
 
     try {
         const data: unknown = await response.json();
+
         if (
             data &&
             typeof data === "object" &&
@@ -102,4 +106,4 @@ async function handleErrorResponse(response: Response): Promise<never> {
     }
 
     throw new Error(message);
-}
+};

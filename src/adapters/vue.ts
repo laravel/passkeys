@@ -43,6 +43,9 @@ export const usePasskeyVerify = ({
     };
 
     onMounted(async () => {
+        // Prevent possible double autofill in Vue strict mode (local dev only)
+        Passkeys.cancel();
+
         // Set up autofill
         const supported = await Passkeys.isAutofillSupported();
 
@@ -68,6 +71,12 @@ export const usePasskeyVerify = ({
         } finally {
             isLoading.value = false;
         }
+
+        return () => {
+            isLoading.value = false;
+            error.value = null;
+            Passkeys.cancel();
+        };
     });
 
     return {
@@ -85,6 +94,7 @@ export const usePasskeyRegister = ({
 }: UsePasskeyRegisterOptions = {}) => {
     const isLoading = ref(false);
     const error = ref<string | null>(null);
+    const isSupported = ref(Passkeys.isSupported());
 
     const register = async (name: string) => {
         isLoading.value = true;
@@ -110,6 +120,6 @@ export const usePasskeyRegister = ({
         register,
         isLoading,
         error,
-        isSupported: Passkeys.isSupported(),
+        isSupported: isSupported.value,
     };
 };

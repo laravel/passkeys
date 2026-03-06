@@ -15,12 +15,19 @@ export default defineConfig({
             entry: {
                 index: resolve(__dirname, "src/index.ts"),
                 react: resolve(__dirname, "src/adapters/react.ts"),
+                svelte: resolve(__dirname, "src/adapters/svelte.ts"),
                 vue: resolve(__dirname, "src/adapters/vue.ts"),
             },
             formats: ["es"],
         },
         rollupOptions: {
-            external: ["@simplewebauthn/browser", "react", "vue"],
+            external: [
+                "@simplewebauthn/browser",
+                "react",
+                "svelte",
+                "svelte/store",
+                "vue",
+            ],
             output: {
                 entryFileNames: "[name].js",
             },

@@ -25,20 +25,23 @@ await Passkeys.verify();
 ### React
 
 ```jsx
+import { useState } from "react";
 import { usePasskeyVerify, usePasskeyRegister } from "@laravel/passkeys/react";
 
 // Login
 function LoginPage() {
     const { verify, isLoading, error, isSupported } = usePasskeyVerify({
         onSuccess: (response) => {
-            window.location.href = response.redirect;
+            if (response.redirect) {
+                window.location.href = response.redirect;
+            }
         },
     });
 
     return (
         <div>
             {/* Add webauthn to autocomplete to enable passkey autofill */}
-            <input type="email" autoComplete="email webauthn" />
+            <input type="text" autoComplete="email webauthn" />
 
             <button onClick={verify} disabled={!isSupported || isLoading}>
                 {isLoading ? "Authenticating..." : "Sign in with passkey"}
@@ -87,7 +90,9 @@ const {
     error: verifyError,
 } = usePasskeyVerify({
     onSuccess: (response) => {
-        router.visit(response.redirect);
+        if (response.redirect) {
+            router.visit(response.redirect);
+        }
     },
 });
 
@@ -102,7 +107,7 @@ const {
 
 <template>
     <!-- Include webauthn in autocomplete to enable passkey autofill -->
-    <input type="email" autocomplete="email webauthn" />
+    <input type="text" autocomplete="email webauthn" />
 
     <button @click="verify" :disabled="verifyLoading">
         {{ verifyLoading ? "Authenticating..." : "Sign in with passkey" }}
@@ -116,6 +121,57 @@ const {
     </button>
     <p v-if="registerError" class="error">{{ registerError }}</p>
 </template>
+```
+
+### Svelte
+
+```svelte
+<script lang="ts">
+    import {
+        usePasskeyVerify,
+        usePasskeyRegister,
+    } from "@laravel/passkeys/svelte";
+
+    // Login
+    const {
+        verify,
+        isLoading: verifyLoading,
+        error: verifyError,
+    } = usePasskeyVerify({
+        onSuccess: (response) => {
+            if (response.redirect) {
+                window.location.href = response.redirect;
+            }
+        },
+    });
+
+    // Register
+    let name = "";
+    const {
+        register,
+        isLoading: registerLoading,
+        error: registerError,
+    } = usePasskeyRegister();
+</script>
+
+<!-- Include webauthn in autocomplete to enable passkey autofill -->
+<input type="text" autocomplete="email webauthn" />
+
+<button on:click={verify} disabled={$verifyLoading}>
+    {$verifyLoading ? "Authenticating..." : "Sign in with passkey"}
+</button>
+{#if $verifyError}
+    <p class="error">{$verifyError}</p>
+{/if}
+
+<!-- Register -->
+<input bind:value={name} placeholder="Passkey name" />
+<button on:click={() => register(name)} disabled={$registerLoading || !name}>
+    {$registerLoading ? "Registering..." : "Add passkey"}
+</button>
+{#if $registerError}
+    <p class="error">{$registerError}</p>
+{/if}
 ```
 
 ## Core API
@@ -179,9 +235,9 @@ type RouteOverrides = {
 };
 ```
 
-### React / Vue Route Overrides
+### React / Vue / Svelte Route Overrides
 
-Both `usePasskeyVerify` adapters accept:
+All framework `usePasskeyVerify` adapters accept:
 
 ```js
 usePasskeyVerify({
@@ -190,12 +246,14 @@ usePasskeyVerify({
         submit: "/passkeys/confirm",
     },
     onSuccess: (response) => {
-        window.location.href = response.redirect;
+        if (response.redirect) {
+            window.location.href = response.redirect;
+        }
     },
 });
 ```
 
-Both `usePasskeyRegister` adapters accept:
+All framework `usePasskeyRegister` adapters accept:
 
 ```js
 usePasskeyRegister({
@@ -209,14 +267,17 @@ usePasskeyRegister({
 });
 ```
 
+`usePasskeyVerify` automatically attempts `Passkeys.autofill()` when autofill is supported.
+
 ## Type Compatibility
 
 This package uses TypeScript types from [`@simplewebauthn/browser`](https://www.npmjs.com/package/@simplewebauthn/browser). These types are fully compatible with the JSON output from the [`web-auth/webauthn-lib`](https://packagist.org/packages/web-auth/webauthn-lib) PHP package.
 
 ## Package Exports
 
-| Entry Point               | Exports                                  |
-| ------------------------- | ---------------------------------------- |
-| `@laravel/passkeys`       | `Passkeys`                               |
-| `@laravel/passkeys/react` | `usePasskeyVerify`, `usePasskeyRegister` |
-| `@laravel/passkeys/vue`   | `usePasskeyVerify`, `usePasskeyRegister` |
+| Entry Point                | Exports                                                                                                                             |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `@laravel/passkeys`        | `Passkeys`, `defaultRoutes`, `PasskeyError`, `NotSupportedError`, `UserCancelledError`, `PasskeyExistsError`, `NoPasskeyFoundError` |
+| `@laravel/passkeys/react`  | `usePasskeyVerify`, `usePasskeyRegister`                                                                                            |
+| `@laravel/passkeys/vue`    | `usePasskeyVerify`, `usePasskeyRegister`                                                                                            |
+| `@laravel/passkeys/svelte` | `usePasskeyVerify`, `usePasskeyRegister`                                                                                            |

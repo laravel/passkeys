@@ -108,7 +108,7 @@ export const Passkeys = {
     /**
      * Enable passkey autofill on the current page.
      *
-     * Note that the page must have an input with `autocomplete="username webauthn"` to
+     * Note that the page must have an input with `autocomplete="email webauthn"` to
      * anchor the browser's passkey picker dropdown.
      *
      * Returns the verification response on success, or `undefined` if autofill

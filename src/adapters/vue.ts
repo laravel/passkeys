@@ -60,6 +60,7 @@ export const usePasskeyVerify = ({
             const response = await Passkeys.autofill({
                 routes,
             });
+
             if (response) {
                 onSuccess?.(response);
             }

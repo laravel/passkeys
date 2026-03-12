@@ -38,7 +38,9 @@ export const usePasskeyVerify = ({
         setError(null);
 
         try {
-            const response = await Passkeys.verify({ routes });
+            const response = await Passkeys.verify({
+                routes: routesRef.current,
+            });
             onSuccessRef.current?.(response);
         } catch (e) {
             const err = toError(e, "Authentication failed");
@@ -47,9 +49,11 @@ export const usePasskeyVerify = ({
         } finally {
             setIsLoading(false);
         }
-    }, [routes]);
+    }, []);
 
     useEffect(() => {
+        Passkeys.cancel();
+
         const attemptToAutofill = async (): Promise<void> => {
             const supported = await Passkeys.isAutofillSupported();
 
@@ -78,6 +82,10 @@ export const usePasskeyVerify = ({
         };
 
         void attemptToAutofill();
+
+        return () => {
+            Passkeys.cancel();
+        };
     }, []);
 
     const isSupported = useMemo(() => Passkeys.isSupported(), []);
@@ -90,35 +98,40 @@ export const usePasskeyVerify = ({
     };
 };
 
-export function usePasskeyRegister({
+export const usePasskeyRegister = ({
     routes,
     onSuccess,
     onError,
-}: UsePasskeyRegisterOptions = {}) {
+}: UsePasskeyRegisterOptions = {}) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const register = useCallback(
-        async (name: string): Promise<void> => {
-            setIsLoading(true);
-            setError(null);
+    const onSuccessRef = useRef(onSuccess);
+    const onErrorRef = useRef(onError);
+    const routesRef = useRef(routes);
 
-            try {
-                await Passkeys.register({
-                    name,
-                    routes,
-                });
-                onSuccess?.();
-            } catch (e) {
-                const err = toError(e, "Registration failed");
-                setError(err.message);
-                onError?.(err);
-            } finally {
-                setIsLoading(false);
-            }
-        },
-        [routes, onSuccess, onError],
-    );
+    onSuccessRef.current = onSuccess;
+    onErrorRef.current = onError;
+    routesRef.current = routes;
+
+    const register = useCallback(async (name: string): Promise<void> => {
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            await Passkeys.register({
+                name,
+                routes: routesRef.current,
+            });
+            onSuccessRef.current?.();
+        } catch (e) {
+            const err = toError(e, "Registration failed");
+            setError(err.message);
+            onErrorRef.current?.(err);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
 
     const isSupported = useMemo(() => Passkeys.isSupported(), []);
 
@@ -128,4 +141,4 @@ export function usePasskeyRegister({
         error,
         isSupported,
     };
-}
+};

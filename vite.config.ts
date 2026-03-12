@@ -26,7 +26,7 @@ export default defineConfig({
             formats: ["es"],
         },
         rollupOptions: {
-            external: ["@simplewebauthn/browser", "react", "vue", "svelte"],
+            external: ["@simplewebauthn/browser", "react", "vue", "svelte", /^svelte\//],
             output: {
                 entryFileNames: "[name].js",
             },

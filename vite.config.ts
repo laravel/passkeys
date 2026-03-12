@@ -5,12 +5,11 @@ import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
 
 export default defineConfig({
+    resolve: {
+        conditions: ["browser", "import"],
+    },
     plugins: [
-        svelte({
-            compilerOptions: {
-                allowNonSvelteComponents: true,
-            },
-        }),
+        svelte(),
         dts({
             insertTypesEntry: true,
             include: ["src/**/*.ts"],
@@ -23,7 +22,6 @@ export default defineConfig({
                 react: resolve(__dirname, "src/adapters/react.ts"),
                 svelte: resolve(__dirname, "src/adapters/svelte.ts"),
                 vue: resolve(__dirname, "src/adapters/vue.ts"),
-                svelte: resolve(__dirname, "src/adapters/svelte.svelte.ts"),
             },
             formats: ["es"],
         },
@@ -35,7 +33,7 @@ export default defineConfig({
         },
     },
     test: {
-        environment: "jsdom",
+        environment: "happy-dom",
         setupFiles: ["./tests/setup.ts"],
     },
 });

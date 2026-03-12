@@ -23,7 +23,7 @@ jobs:
                   node-version: 20
 
             - name: Install dependencies
-              run: npm install
+              run: npm ci --ignore-scripts
 
             - name: Format code
               run: npm run format

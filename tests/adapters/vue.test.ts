@@ -1,11 +1,4 @@
-import {
-    describe,
-    it,
-    expect,
-    beforeEach,
-    vi,
-    type Mock,
-} from "vitest";
+import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import { defineComponent, h } from "vue";
 import { Passkeys } from "../../src/passkeys";
@@ -37,7 +30,11 @@ const VerifyWrapper = defineComponent({
             h("span", { "data-loading": "" }, String(passkey.isLoading.value)),
             h("span", { "data-error": "" }, passkey.error.value ?? ""),
             h("span", { "data-supported": "" }, String(passkey.isSupported)),
-            h("button", { "data-verify": "", onClick: () => passkey.verify() }, "Verify"),
+            h(
+                "button",
+                { "data-verify": "", onClick: () => passkey.verify() },
+                "Verify",
+            ),
         ]);
     },
 });
@@ -55,7 +52,14 @@ const RegisterWrapper = defineComponent({
             h("span", { "data-loading": "" }, String(passkey.isLoading.value)),
             h("span", { "data-error": "" }, passkey.error.value ?? ""),
             h("span", { "data-supported": "" }, String(passkey.isSupported)),
-            h("button", { "data-register": "", onClick: () => passkey.register("My Device") }, "Register"),
+            h(
+                "button",
+                {
+                    "data-register": "",
+                    onClick: () => passkey.register("My Device"),
+                },
+                "Register",
+            ),
         ]);
     },
 });
@@ -86,7 +90,9 @@ describe("Vue adapter", () => {
             const wrapper = mount(VerifyWrapper);
             await flushPromises();
 
-            const vm = wrapper.vm as unknown as { onSuccess: ReturnType<typeof vi.fn> };
+            const vm = wrapper.vm as unknown as {
+                onSuccess: ReturnType<typeof vi.fn>;
+            };
             await wrapper.find("[data-verify]").trigger("click");
             await flushPromises();
 
@@ -107,7 +113,9 @@ describe("Vue adapter", () => {
             await flushPromises();
 
             expect(wrapper.find("[data-error]").text()).toBe("Verify failed");
-            const vm = wrapper.vm as unknown as { onError: ReturnType<typeof vi.fn> };
+            const vm = wrapper.vm as unknown as {
+                onError: ReturnType<typeof vi.fn>;
+            };
             expect(vm.onError).toHaveBeenCalledWith(
                 expect.objectContaining({ message: "Verify failed" }),
             );
@@ -121,7 +129,9 @@ describe("Vue adapter", () => {
             const wrapper = mount(VerifyWrapper);
             await flushPromises();
 
-            const vm = wrapper.vm as unknown as { onSuccess: ReturnType<typeof vi.fn> };
+            const vm = wrapper.vm as unknown as {
+                onSuccess: ReturnType<typeof vi.fn>;
+            };
             expect(vm.onSuccess).toHaveBeenCalledWith(response);
             expect(Passkeys.autofill).toHaveBeenCalledWith({ routes });
         });
@@ -155,7 +165,9 @@ describe("Vue adapter", () => {
             const wrapper = mount(RegisterWrapper);
             await flushPromises();
 
-            const vm = wrapper.vm as unknown as { onSuccess: ReturnType<typeof vi.fn> };
+            const vm = wrapper.vm as unknown as {
+                onSuccess: ReturnType<typeof vi.fn>;
+            };
             await wrapper.find("[data-register]").trigger("click");
             await flushPromises();
 
@@ -181,7 +193,9 @@ describe("Vue adapter", () => {
             expect(wrapper.find("[data-error]").text()).toBe(
                 "Registration failed",
             );
-            const vm = wrapper.vm as unknown as { onError: ReturnType<typeof vi.fn> };
+            const vm = wrapper.vm as unknown as {
+                onError: ReturnType<typeof vi.fn>;
+            };
             expect(vm.onError).toHaveBeenCalledWith(
                 expect.objectContaining({ message: "Registration failed" }),
             );

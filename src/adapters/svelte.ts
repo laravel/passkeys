@@ -30,6 +30,7 @@ export function usePasskeyVerify({
     const verify = async () => {
         isLoading.set(true);
         error.set(null);
+
         try {
             const response = await Passkeys.verify({ routes });
             onSuccess?.(response);
@@ -94,6 +95,7 @@ export function usePasskeyRegister({
     const register = async (name: string) => {
         isLoading.set(true);
         error.set(null);
+
         try {
             await Passkeys.register({
                 name,

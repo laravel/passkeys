@@ -1,11 +1,4 @@
-import {
-    describe,
-    it,
-    expect,
-    beforeEach,
-    vi,
-    type Mock,
-} from "vitest";
+import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { Passkeys } from "../../src/passkeys";
 import { usePasskeyVerify, usePasskeyRegister } from "../../src/adapters/react";

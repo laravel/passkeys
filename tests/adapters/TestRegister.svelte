@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { usePasskeyRegister } from "../../src/adapters/svelte.svelte";
+    import { usePasskeyRegister } from "../../src/adapters/svelte";
 
     interface Props {
         routes: { options: string; submit: string };

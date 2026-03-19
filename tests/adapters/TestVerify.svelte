@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { usePasskeyVerify } from "../../src/adapters/svelte.svelte";
+    import { usePasskeyVerify } from "../../src/adapters/svelte";
 
     interface Props {
         routes: { options: string; submit: string };

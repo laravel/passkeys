@@ -51,30 +51,27 @@ export class NoPasskeyFoundError extends PasskeyError {
 /**
  * Convert WebAuthn errors to friendly passkey errors.
  */
-export function toPasskeyError(error: unknown): PasskeyError {
+export const toPasskeyError = (error: unknown): PasskeyError => {
     if (error instanceof PasskeyError) {
         return error;
     }
 
-    if (error instanceof Error) {
-        // User cancelled the operation
-        if (error.name === "NotAllowedError") {
-            return new UserCancelledError();
-        }
-
-        // Passkey already registered
-        if (error.name === "InvalidStateError") {
-            return new PasskeyExistsError();
-        }
-
-        // Browser doesn't support WebAuthn
-        if (error.name === "NotSupportedError") {
-            return new NotSupportedError();
-        }
-
-        // Pass through with original message
-        return new PasskeyError(error.message);
+    if (!(error instanceof Error)) {
+        return new PasskeyError("An unknown error occurred.");
     }
 
-    return new PasskeyError("An unknown error occurred.");
-}
+    switch (error.name) {
+        case "NotAllowedError":
+            return new UserCancelledError();
+        case "InvalidStateError":
+            return new PasskeyExistsError();
+        case "NotSupportedError":
+            return new NotSupportedError();
+        default:
+            return new PasskeyError(error.message);
+    }
+};
+
+export const toError = (e: unknown, fallbackMessage: string): Error => {
+    return e instanceof Error ? e : new Error(String(e) || fallbackMessage);
+};

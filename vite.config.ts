@@ -1,10 +1,15 @@
 /// <reference types="vitest" />
+import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { resolve } from "path";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
 
 export default defineConfig({
+    resolve: {
+        conditions: ["browser", "import"],
+    },
     plugins: [
+        svelte(),
         dts({
             insertTypesEntry: true,
             include: ["src/**/*.ts"],
@@ -24,9 +29,9 @@ export default defineConfig({
             external: [
                 "@simplewebauthn/browser",
                 "react",
-                "svelte",
-                "svelte/store",
                 "vue",
+                "svelte",
+                /^svelte\//,
             ],
             output: {
                 entryFileNames: "[name].js",
@@ -34,7 +39,7 @@ export default defineConfig({
         },
     },
     test: {
-        environment: "jsdom",
+        environment: "happy-dom",
         setupFiles: ["./tests/setup.ts"],
     },
 });

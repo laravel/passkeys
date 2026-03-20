@@ -1,4 +1,5 @@
-import { ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
+import { toError } from "../errors";
 import { Passkeys } from "../passkeys";
 import type {
     RegisterRouteOptions,
@@ -11,47 +12,70 @@ type UsePasskeyVerifyOptions = VerifyRouteOptions & {
     onError?: (error: Error) => void;
 };
 
-export function usePasskeyVerify({
+type UsePasskeyRegisterOptions = RegisterRouteOptions & {
+    onSuccess?: () => void;
+    onError?: (error: Error) => void;
+};
+
+export const usePasskeyVerify = ({
     routes,
     onSuccess,
     onError,
-}: UsePasskeyVerifyOptions = {}) {
+}: UsePasskeyVerifyOptions = {}) => {
     const isLoading = ref(false);
     const error = ref<string | null>(null);
 
     const verify = async () => {
         isLoading.value = true;
         error.value = null;
+
         try {
             const response = await Passkeys.verify({ routes });
             onSuccess?.(response);
         } catch (e) {
-            error.value =
-                e instanceof Error ? e.message : "Authentication failed";
-            onError?.(e as Error);
+            const err = toError(e, "Authentication failed");
+
+            error.value = err.message;
+            onError?.(err);
+        } finally {
             isLoading.value = false;
         }
     };
 
-    // Set up autofill
-    void Passkeys.isAutofillSupported().then((supported) => {
-        if (supported) {
-            void Passkeys.autofill({
-                routes,
-            })
-                .then((response) => {
-                    if (response) {
-                        onSuccess?.(response);
-                    }
-                })
-                .catch((e) => {
-                    error.value =
-                        e instanceof Error
-                            ? e.message
-                            : "Authentication failed";
-                    onError?.(e as Error);
-                });
+    onMounted(async () => {
+        // Prevent possible double autofill in Vue strict mode (local dev only)
+        Passkeys.cancel();
+
+        // Set up autofill
+        const supported = await Passkeys.isAutofillSupported();
+
+        if (!supported) {
+            return;
         }
+
+        isLoading.value = true;
+        error.value = null;
+
+        try {
+            const response = await Passkeys.autofill({
+                routes,
+            });
+
+            if (response) {
+                onSuccess?.(response);
+            }
+        } catch (e) {
+            const err = toError(e, "Authentication failed");
+
+            error.value = err.message;
+            onError?.(err);
+        } finally {
+            isLoading.value = false;
+        }
+    });
+
+    onUnmounted(() => {
+        Passkeys.cancel();
     });
 
     return {
@@ -60,24 +84,20 @@ export function usePasskeyVerify({
         error,
         isSupported: Passkeys.isSupported(),
     };
-}
-
-type UsePasskeyRegisterOptions = RegisterRouteOptions & {
-    onSuccess?: () => void;
-    onError?: (error: Error) => void;
 };
 
-export function usePasskeyRegister({
+export const usePasskeyRegister = ({
     routes,
     onSuccess,
     onError,
-}: UsePasskeyRegisterOptions = {}) {
+}: UsePasskeyRegisterOptions = {}) => {
     const isLoading = ref(false);
     const error = ref<string | null>(null);
 
     const register = async (name: string) => {
         isLoading.value = true;
         error.value = null;
+
         try {
             await Passkeys.register({
                 name,
@@ -85,9 +105,11 @@ export function usePasskeyRegister({
             });
             onSuccess?.();
         } catch (e) {
-            error.value =
-                e instanceof Error ? e.message : "Registration failed";
-            onError?.(e as Error);
+            const err = toError(e, "Registration failed");
+
+            error.value = err.message;
+            onError?.(err);
+        } finally {
             isLoading.value = false;
         }
     };
@@ -98,4 +120,4 @@ export function usePasskeyRegister({
         error,
         isSupported: Passkeys.isSupported(),
     };
-}
+};

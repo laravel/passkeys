@@ -107,7 +107,9 @@ describe("Svelte adapter", () => {
             (Passkeys.autofill as Mock).mockResolvedValue(response);
 
             const onSuccess = vi.fn();
-            render(TestVerify, { props: { routes, onSuccess, autofill: true } });
+            render(TestVerify, {
+                props: { routes, onSuccess, autofill: true },
+            });
 
             await waitFor(() => {
                 expect(onSuccess).toHaveBeenCalledWith(response);

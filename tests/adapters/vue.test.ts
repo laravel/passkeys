@@ -39,7 +39,11 @@ const createVerifyWrapper = (autofill = false) =>
                     String(passkey.isLoading.value),
                 ),
                 h("span", { "data-error": "" }, passkey.error.value ?? ""),
-                h("span", { "data-supported": "" }, String(passkey.isSupported)),
+                h(
+                    "span",
+                    { "data-supported": "" },
+                    String(passkey.isSupported),
+                ),
                 h(
                     "button",
                     { "data-verify": "", onClick: () => passkey.verify() },

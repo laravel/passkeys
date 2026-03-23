@@ -2,6 +2,7 @@
     import { usePasskeyVerify } from "../../src/adapters/svelte";
 
     interface Props {
+        autofill?: boolean;
         routes: { options: string; submit: string };
         onSuccess?: (response: { redirect?: string }) => void;
         onError?: (error: Error) => void;

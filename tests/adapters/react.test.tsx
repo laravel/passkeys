@@ -88,13 +88,27 @@ describe("React adapter", () => {
             );
         });
 
-        it("calls onSuccess when autofill runs on mount and returns a value", async () => {
+        it("does not call autofill by default", async () => {
+            const onSuccess = vi.fn();
+            renderHook(() => usePasskeyVerify({ routes, onSuccess }));
+
+            await waitFor(() => {
+                expect(Passkeys.autofill).not.toHaveBeenCalled();
+            });
+
+            expect(Passkeys.isAutofillSupported).not.toHaveBeenCalled();
+            expect(onSuccess).not.toHaveBeenCalled();
+        });
+
+        it("calls onSuccess when autofill is enabled and returns a value", async () => {
             (Passkeys.isAutofillSupported as Mock).mockResolvedValue(true);
             const response = { redirect: "/home" };
             (Passkeys.autofill as Mock).mockResolvedValue(response);
 
             const onSuccess = vi.fn();
-            renderHook(() => usePasskeyVerify({ routes, onSuccess }));
+            renderHook(() =>
+                usePasskeyVerify({ routes, onSuccess, autofill: true }),
+            );
 
             await waitFor(() => {
                 expect(onSuccess).toHaveBeenCalledWith(response);
@@ -103,11 +117,13 @@ describe("React adapter", () => {
             expect(Passkeys.autofill).toHaveBeenCalledWith({ routes });
         });
 
-        it("does not call autofill when isAutofillSupported resolves false", async () => {
+        it("does not call autofill when enabled but unsupported", async () => {
             (Passkeys.isAutofillSupported as Mock).mockResolvedValue(false);
 
             const onSuccess = vi.fn();
-            renderHook(() => usePasskeyVerify({ routes, onSuccess }));
+            renderHook(() =>
+                usePasskeyVerify({ routes, onSuccess, autofill: true }),
+            );
 
             await waitFor(() => {
                 expect(Passkeys.isAutofillSupported).toHaveBeenCalled();

@@ -89,13 +89,25 @@ describe("Svelte adapter", () => {
             );
         });
 
-        it("calls onSuccess when autofill runs on mount and returns a value", async () => {
+        it("does not call autofill by default", async () => {
+            const onSuccess = vi.fn();
+            render(TestVerify, { props: { routes, onSuccess } });
+
+            await waitFor(() => {
+                expect(Passkeys.autofill).not.toHaveBeenCalled();
+            });
+
+            expect(Passkeys.isAutofillSupported).not.toHaveBeenCalled();
+            expect(onSuccess).not.toHaveBeenCalled();
+        });
+
+        it("calls onSuccess when autofill is enabled and returns a value", async () => {
             (Passkeys.isAutofillSupported as Mock).mockResolvedValue(true);
             const response = { redirect: "/home" };
             (Passkeys.autofill as Mock).mockResolvedValue(response);
 
             const onSuccess = vi.fn();
-            render(TestVerify, { props: { routes, onSuccess } });
+            render(TestVerify, { props: { routes, onSuccess, autofill: true } });
 
             await waitFor(() => {
                 expect(onSuccess).toHaveBeenCalledWith(response);
@@ -105,7 +117,9 @@ describe("Svelte adapter", () => {
         });
 
         it("calls Passkeys.cancel on unmount", async () => {
-            const { unmount } = render(TestVerify, { props: { routes } });
+            const { unmount } = render(TestVerify, {
+                props: { routes, autofill: true },
+            });
 
             await waitFor(() => {
                 expect(Passkeys.cancel).toHaveBeenCalled();

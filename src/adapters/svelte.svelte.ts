@@ -8,6 +8,7 @@ import type {
 } from "../types";
 
 type UsePasskeyVerifyOptions = VerifyRouteOptions & {
+    autofill?: boolean;
     onSuccess?: (response: VerifyResponse) => void;
     onError?: (error: Error) => void;
 };
@@ -18,6 +19,7 @@ type UsePasskeyRegisterOptions = RegisterRouteOptions & {
 };
 
 export function usePasskeyVerify({
+    autofill = false,
     routes,
     onSuccess,
     onError,
@@ -43,6 +45,10 @@ export function usePasskeyVerify({
     };
 
     onMount(() => {
+        if (!autofill) {
+            return;
+        }
+
         Passkeys.cancel();
 
         void (async () => {

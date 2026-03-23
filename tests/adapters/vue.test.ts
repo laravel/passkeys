@@ -17,27 +17,37 @@ vi.mock("../../src/passkeys", () => ({
 
 const routes = { options: "/opts", submit: "/submit" };
 
-const VerifyWrapper = defineComponent({
-    setup() {
-        const onSuccess = vi.fn();
-        const onError = vi.fn();
-        const passkey = usePasskeyVerify({ routes, onSuccess, onError });
-        return { passkey, onSuccess, onError };
-    },
-    render() {
-        const passkey = this.passkey;
-        return h("div", [
-            h("span", { "data-loading": "" }, String(passkey.isLoading.value)),
-            h("span", { "data-error": "" }, passkey.error.value ?? ""),
-            h("span", { "data-supported": "" }, String(passkey.isSupported)),
-            h(
-                "button",
-                { "data-verify": "", onClick: () => passkey.verify() },
-                "Verify",
-            ),
-        ]);
-    },
-});
+const createVerifyWrapper = (autofill = false) =>
+    defineComponent({
+        setup() {
+            const onSuccess = vi.fn();
+            const onError = vi.fn();
+            const passkey = usePasskeyVerify({
+                routes,
+                onSuccess,
+                onError,
+                autofill,
+            });
+            return { passkey, onSuccess, onError };
+        },
+        render() {
+            const passkey = this.passkey;
+            return h("div", [
+                h(
+                    "span",
+                    { "data-loading": "" },
+                    String(passkey.isLoading.value),
+                ),
+                h("span", { "data-error": "" }, passkey.error.value ?? ""),
+                h("span", { "data-supported": "" }, String(passkey.isSupported)),
+                h(
+                    "button",
+                    { "data-verify": "", onClick: () => passkey.verify() },
+                    "Verify",
+                ),
+            ]);
+        },
+    });
 
 const RegisterWrapper = defineComponent({
     setup() {
@@ -75,7 +85,7 @@ describe("Vue adapter", () => {
         it("returns initial state with isSupported from Passkeys.isSupported", async () => {
             (Passkeys.isSupported as Mock).mockReturnValue(true);
 
-            const wrapper = mount(VerifyWrapper);
+            const wrapper = mount(createVerifyWrapper());
             await flushPromises();
 
             expect(wrapper.find("[data-loading]").text()).toBe("false");
@@ -87,7 +97,7 @@ describe("Vue adapter", () => {
             const response = { redirect: "/dashboard" };
             (Passkeys.verify as Mock).mockResolvedValue(response);
 
-            const wrapper = mount(VerifyWrapper);
+            const wrapper = mount(createVerifyWrapper());
             await flushPromises();
 
             const vm = wrapper.vm as unknown as {
@@ -106,7 +116,7 @@ describe("Vue adapter", () => {
                 new Error("Verify failed"),
             );
 
-            const wrapper = mount(VerifyWrapper);
+            const wrapper = mount(createVerifyWrapper());
             await flushPromises();
 
             await wrapper.find("[data-verify]").trigger("click");
@@ -121,12 +131,24 @@ describe("Vue adapter", () => {
             );
         });
 
-        it("calls onSuccess when autofill runs on mount and returns a value", async () => {
+        it("does not call autofill by default", async () => {
+            const wrapper = mount(createVerifyWrapper());
+            await flushPromises();
+
+            const vm = wrapper.vm as unknown as {
+                onSuccess: ReturnType<typeof vi.fn>;
+            };
+            expect(Passkeys.isAutofillSupported).not.toHaveBeenCalled();
+            expect(Passkeys.autofill).not.toHaveBeenCalled();
+            expect(vm.onSuccess).not.toHaveBeenCalled();
+        });
+
+        it("calls onSuccess when autofill is enabled and returns a value", async () => {
             (Passkeys.isAutofillSupported as Mock).mockResolvedValue(true);
             const response = { redirect: "/home" };
             (Passkeys.autofill as Mock).mockResolvedValue(response);
 
-            const wrapper = mount(VerifyWrapper);
+            const wrapper = mount(createVerifyWrapper(true));
             await flushPromises();
 
             const vm = wrapper.vm as unknown as {
@@ -137,7 +159,7 @@ describe("Vue adapter", () => {
         });
 
         it("calls Passkeys.cancel on unmount", async () => {
-            const wrapper = mount(VerifyWrapper);
+            const wrapper = mount(createVerifyWrapper());
             await flushPromises();
 
             wrapper.unmount();

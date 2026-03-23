@@ -8,6 +8,7 @@ import type {
 } from "../types";
 
 type UsePasskeyVerifyOptions = VerifyRouteOptions & {
+    autofill?: boolean;
     onSuccess?: (response: VerifyResponse) => void;
     onError?: (error: Error) => void;
 };
@@ -18,6 +19,7 @@ type UsePasskeyRegisterOptions = RegisterRouteOptions & {
 };
 
 export const usePasskeyVerify = ({
+    autofill = false,
     routes,
     onSuccess,
     onError,
@@ -43,6 +45,10 @@ export const usePasskeyVerify = ({
     };
 
     onMounted(async () => {
+        if (!autofill) {
+            return;
+        }
+
         // Prevent possible double autofill in Vue strict mode (local dev only)
         Passkeys.cancel();
 

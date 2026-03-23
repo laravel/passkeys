@@ -8,6 +8,7 @@ import type {
 } from "../types";
 
 type UsePasskeyVerifyOptions = VerifyRouteOptions & {
+    autofill?: boolean;
     onSuccess?: (response: VerifyResponse) => void;
     onError?: (error: Error) => void;
 };
@@ -18,6 +19,7 @@ type UsePasskeyRegisterOptions = RegisterRouteOptions & {
 };
 
 export const usePasskeyVerify = ({
+    autofill = false,
     routes,
     onSuccess,
     onError,
@@ -52,6 +54,10 @@ export const usePasskeyVerify = ({
     }, []);
 
     useEffect(() => {
+        if (!autofill) {
+            return;
+        }
+
         Passkeys.cancel();
 
         const attemptToAutofill = async (): Promise<void> => {
@@ -86,7 +92,7 @@ export const usePasskeyVerify = ({
         return () => {
             Passkeys.cancel();
         };
-    }, []);
+    }, [autofill]);
 
     const isSupported = useMemo(() => Passkeys.isSupported(), []);
 

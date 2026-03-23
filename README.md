@@ -31,6 +31,7 @@ import { usePasskeyVerify, usePasskeyRegister } from "@laravel/passkeys/react";
 // Login
 function LoginPage() {
     const { verify, isLoading, error, isSupported } = usePasskeyVerify({
+        autofill: true,
         onSuccess: (response) => {
             if (response.redirect) {
                 window.location.href = response.redirect;
@@ -40,7 +41,7 @@ function LoginPage() {
 
     return (
         <div>
-            {/* Add webauthn to autocomplete to enable passkey autofill */}
+            {/* Add webauthn and set autofill: true to show passkeys in the input */}
             <input type="text" autoComplete="email webauthn" />
 
             <button onClick={verify} disabled={!isSupported || isLoading}>
@@ -89,6 +90,7 @@ const {
     isLoading: verifyLoading,
     error: verifyError,
 } = usePasskeyVerify({
+    autofill: true,
     onSuccess: (response) => {
         if (response.redirect) {
             router.visit(response.redirect);
@@ -106,7 +108,7 @@ const {
 </script>
 
 <template>
-    <!-- Include webauthn in autocomplete to enable passkey autofill -->
+    <!-- Include webauthn and set autofill: true to show passkeys in the input -->
     <input type="text" autocomplete="email webauthn" />
 
     <button @click="verify" :disabled="verifyLoading">
@@ -131,6 +133,7 @@ const {
 
     const { verify, isLoading: verifyLoading, error: verifyError, isSupported } =
         usePasskeyVerify({
+            autofill: true,
             onSuccess: (response) => {
                 if (response.redirect) window.location.href = response.redirect;
             },
@@ -141,7 +144,7 @@ const {
         usePasskeyRegister();
 </script>
 
-<!-- Include webauthn in autocomplete to enable passkey autofill -->
+<!-- Include webauthn and set autofill: true to show passkeys in the input -->
 <input type="email" autocomplete="email webauthn" />
 
 <button onclick={verify} disabled={!isSupported || verifyLoading}>
@@ -226,6 +229,7 @@ The `usePasskeyVerify` adapters accept:
 
 ```js
 usePasskeyVerify({
+    autofill: true,
     routes: {
         options: "/passkeys/confirm/options",
         submit: "/passkeys/confirm",
@@ -251,8 +255,6 @@ usePasskeyRegister({
     },
 });
 ```
-
-`usePasskeyVerify` automatically attempts `Passkeys.autofill()` when autofill is supported.
 
 ## Type Compatibility
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { toError } from "../errors";
+import { PasskeyError, toPasskeyError } from "../errors";
 import { Passkeys } from "../passkeys";
 import type {
     RegisterRouteOptions,
@@ -10,12 +10,12 @@ import type {
 type UsePasskeyVerifyOptions = VerifyRouteOptions & {
     autofill?: boolean;
     onSuccess?: (response: VerifyResponse) => void;
-    onError?: (error: Error) => void;
+    onError?: (error: PasskeyError) => void;
 };
 
 type UsePasskeyRegisterOptions = RegisterRouteOptions & {
     onSuccess?: () => void;
-    onError?: (error: Error) => void;
+    onError?: (error: PasskeyError) => void;
 };
 
 export const usePasskeyVerify = ({
@@ -26,6 +26,9 @@ export const usePasskeyVerify = ({
 }: UsePasskeyVerifyOptions = {}) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [errorInstance, setErrorInstance] = useState<PasskeyError | null>(
+        null,
+    );
 
     const onSuccessRef = useRef(onSuccess);
     const onErrorRef = useRef(onError);
@@ -35,9 +38,21 @@ export const usePasskeyVerify = ({
     onErrorRef.current = onError;
     routesRef.current = routes;
 
+    const resetError = () => {
+        setError(null);
+        setErrorInstance(null);
+    };
+
+    const handleError = (e: unknown) => {
+        const err = toPasskeyError(e);
+        setError(err.message);
+        setErrorInstance(err);
+        onErrorRef.current?.(err);
+    };
+
     const verify = useCallback(async (): Promise<void> => {
         setIsLoading(true);
-        setError(null);
+        resetError();
 
         try {
             const response = await Passkeys.verify({
@@ -45,9 +60,7 @@ export const usePasskeyVerify = ({
             });
             onSuccessRef.current?.(response);
         } catch (e) {
-            const err = toError(e, "Authentication failed");
-            setError(err.message);
-            onErrorRef.current?.(err);
+            handleError(e);
         } finally {
             setIsLoading(false);
         }
@@ -68,7 +81,7 @@ export const usePasskeyVerify = ({
             }
 
             setIsLoading(true);
-            setError(null);
+            resetError();
 
             try {
                 const response = await Passkeys.autofill({
@@ -79,9 +92,7 @@ export const usePasskeyVerify = ({
                     onSuccessRef.current?.(response);
                 }
             } catch (e) {
-                const err = toError(e, "Authentication failed");
-                setError(err.message);
-                onErrorRef.current?.(err);
+                handleError(e);
             } finally {
                 setIsLoading(false);
             }
@@ -100,6 +111,7 @@ export const usePasskeyVerify = ({
         verify,
         isLoading,
         error,
+        errorInstance,
         isSupported,
     };
 };
@@ -111,6 +123,9 @@ export const usePasskeyRegister = ({
 }: UsePasskeyRegisterOptions = {}) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [errorInstance, setErrorInstance] = useState<PasskeyError | null>(
+        null,
+    );
 
     const onSuccessRef = useRef(onSuccess);
     const onErrorRef = useRef(onError);
@@ -123,6 +138,7 @@ export const usePasskeyRegister = ({
     const register = useCallback(async (name: string): Promise<void> => {
         setIsLoading(true);
         setError(null);
+        setErrorInstance(null);
 
         try {
             await Passkeys.register({
@@ -131,8 +147,9 @@ export const usePasskeyRegister = ({
             });
             onSuccessRef.current?.();
         } catch (e) {
-            const err = toError(e, "Registration failed");
+            const err = toPasskeyError(e);
             setError(err.message);
+            setErrorInstance(err);
             onErrorRef.current?.(err);
         } finally {
             setIsLoading(false);
@@ -145,6 +162,7 @@ export const usePasskeyRegister = ({
         register,
         isLoading,
         error,
+        errorInstance,
         isSupported,
     };
 };

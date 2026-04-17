@@ -9,6 +9,7 @@ import {
 } from "vitest";
 import { render, fireEvent, waitFor, cleanup } from "@testing-library/svelte";
 import { Passkeys } from "../../src/passkeys";
+import { PasskeyExistsError } from "../../src/errors";
 import TestVerify from "./TestVerify.svelte";
 import TestRegister from "./TestRegister.svelte";
 
@@ -84,9 +85,29 @@ describe("Svelte adapter", () => {
                 expect(getByTestId("error").textContent).toBe("Verify failed");
             });
 
+            expect(getByTestId("error-instance-name").textContent).toBe(
+                "PasskeyError",
+            );
             expect(onError).toHaveBeenCalledWith(
                 expect.objectContaining({ message: "Verify failed" }),
             );
+        });
+
+        it("exposes typed error instance for instanceof branching", async () => {
+            (Passkeys.verify as Mock).mockRejectedValue(
+                new PasskeyExistsError(),
+            );
+
+            const { getByTestId, getByRole } = render(TestVerify, {
+                props: { routes },
+            });
+
+            await fireEvent.click(getByRole("button", { name: "Verify" }));
+            await waitFor(() => {
+                expect(getByTestId("error-instance-name").textContent).toBe(
+                    "PasskeyExistsError",
+                );
+            });
         });
 
         it("does not call autofill by default", async () => {

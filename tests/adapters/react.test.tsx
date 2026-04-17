@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { Passkeys } from "../../src/passkeys";
+import { PasskeyError, PasskeyExistsError } from "../../src/errors";
 import { usePasskeyVerify, usePasskeyRegister } from "../../src/adapters/react";
 
 vi.mock("../../src/passkeys", () => ({
@@ -83,8 +84,29 @@ describe("React adapter", () => {
             });
 
             expect(result.current.error).toBe("Verify failed");
+            expect(result.current.errorInstance).toBeInstanceOf(PasskeyError);
             expect(onError).toHaveBeenCalledWith(
                 expect.objectContaining({ message: "Verify failed" }),
+            );
+        });
+
+        it("exposes typed error instance for instanceof branching", async () => {
+            (Passkeys.verify as Mock).mockRejectedValue(
+                new PasskeyExistsError(),
+            );
+
+            const { result } = renderHook(() => usePasskeyVerify({ routes }));
+
+            await act(async () => {
+                result.current.verify();
+            });
+
+            await waitFor(() => {
+                expect(result.current.isLoading).toBe(false);
+            });
+
+            expect(result.current.errorInstance).toBeInstanceOf(
+                PasskeyExistsError,
             );
         });
 

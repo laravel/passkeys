@@ -281,7 +281,7 @@ const { register, error, errorInstance } = usePasskeyRegister();
         <p>You already registered a passkey on this device.</p>
     ) : error ? (
         <p className="error">{error}</p>
-    ) : null;
+    ) : null
 }
 ```
 

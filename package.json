@@ -46,6 +46,7 @@
     ],
     "scripts": {
         "prepare": "npm run build",
+        "prepublishOnly": "npm run lint && npm run typecheck && npm test -- --run",
         "build": "vite build",
         "dev": "vite build --watch",
         "test": "vitest",

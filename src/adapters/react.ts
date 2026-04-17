@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+    useSyncExternalStore,
+} from "react";
 import { toError } from "../errors";
 import { Passkeys } from "../passkeys";
 import type {
@@ -18,6 +24,14 @@ type UsePasskeyRegisterOptions = RegisterRouteOptions & {
     onError?: (error: Error) => void;
 };
 
+// Stable references for useSyncExternalStore. `subscribe` is a no-op because
+// WebAuthn support doesn't change during a session; we only care about the
+// SSR/client split that `getServerSnapshot` provides.
+const noop = (): void => undefined;
+const subscribeSupport = () => noop;
+const getSupportClientSnapshot = () => Passkeys.isSupported();
+const getSupportServerSnapshot = () => false;
+
 export const usePasskeyVerify = ({
     autofill = false,
     routes,
@@ -26,6 +40,11 @@ export const usePasskeyVerify = ({
 }: UsePasskeyVerifyOptions = {}) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const isSupported = useSyncExternalStore(
+        subscribeSupport,
+        getSupportClientSnapshot,
+        getSupportServerSnapshot,
+    );
 
     const onSuccessRef = useRef(onSuccess);
     const onErrorRef = useRef(onError);
@@ -94,8 +113,6 @@ export const usePasskeyVerify = ({
         };
     }, [autofill]);
 
-    const isSupported = useMemo(() => Passkeys.isSupported(), []);
-
     return {
         verify,
         isLoading,
@@ -111,6 +128,11 @@ export const usePasskeyRegister = ({
 }: UsePasskeyRegisterOptions = {}) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const isSupported = useSyncExternalStore(
+        subscribeSupport,
+        getSupportClientSnapshot,
+        getSupportServerSnapshot,
+    );
 
     const onSuccessRef = useRef(onSuccess);
     const onErrorRef = useRef(onError);
@@ -138,8 +160,6 @@ export const usePasskeyRegister = ({
             setIsLoading(false);
         }
     }, []);
-
-    const isSupported = useMemo(() => Passkeys.isSupported(), []);
 
     return {
         register,

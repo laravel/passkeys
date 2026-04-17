@@ -1,5 +1,5 @@
 import { onMounted, onUnmounted, ref } from "vue";
-import { toError } from "../errors";
+import { PasskeyError, toPasskeyError } from "../errors";
 import { Passkeys } from "../passkeys";
 import type {
     RegisterRouteOptions,
@@ -10,12 +10,12 @@ import type {
 type UsePasskeyVerifyOptions = VerifyRouteOptions & {
     autofill?: boolean;
     onSuccess?: (response: VerifyResponse) => void;
-    onError?: (error: Error) => void;
+    onError?: (error: PasskeyError) => void;
 };
 
 type UsePasskeyRegisterOptions = RegisterRouteOptions & {
     onSuccess?: () => void;
-    onError?: (error: Error) => void;
+    onError?: (error: PasskeyError) => void;
 };
 
 export const usePasskeyVerify = ({
@@ -27,19 +27,30 @@ export const usePasskeyVerify = ({
     const isLoading = ref(false);
     const error = ref<string | null>(null);
     const isSupported = ref(false);
+    const errorInstance = ref<PasskeyError | null>(null);
+
+    const resetError = () => {
+        error.value = null;
+        errorInstance.value = null;
+    };
+
+    const handleError = (e: unknown) => {
+        const err = toPasskeyError(e);
+
+        error.value = err.message;
+        errorInstance.value = err;
+        onError?.(err);
+    };
 
     const verify = async () => {
         isLoading.value = true;
-        error.value = null;
+        resetError();
 
         try {
             const response = await Passkeys.verify({ routes });
             onSuccess?.(response);
         } catch (e) {
-            const err = toError(e, "Authentication failed");
-
-            error.value = err.message;
-            onError?.(err);
+            handleError(e);
         } finally {
             isLoading.value = false;
         }
@@ -63,7 +74,7 @@ export const usePasskeyVerify = ({
         }
 
         isLoading.value = true;
-        error.value = null;
+        resetError();
 
         try {
             const response = await Passkeys.autofill({
@@ -74,10 +85,7 @@ export const usePasskeyVerify = ({
                 onSuccess?.(response);
             }
         } catch (e) {
-            const err = toError(e, "Authentication failed");
-
-            error.value = err.message;
-            onError?.(err);
+            handleError(e);
         } finally {
             isLoading.value = false;
         }
@@ -91,6 +99,7 @@ export const usePasskeyVerify = ({
         verify,
         isLoading,
         error,
+        errorInstance,
         isSupported,
     };
 };
@@ -103,6 +112,7 @@ export const usePasskeyRegister = ({
     const isLoading = ref(false);
     const error = ref<string | null>(null);
     const isSupported = ref(false);
+    const errorInstance = ref<PasskeyError | null>(null);
 
     onMounted(() => {
         isSupported.value = Passkeys.isSupported();
@@ -111,6 +121,7 @@ export const usePasskeyRegister = ({
     const register = async (name: string) => {
         isLoading.value = true;
         error.value = null;
+        errorInstance.value = null;
 
         try {
             await Passkeys.register({
@@ -119,9 +130,10 @@ export const usePasskeyRegister = ({
             });
             onSuccess?.();
         } catch (e) {
-            const err = toError(e, "Registration failed");
+            const err = toPasskeyError(e);
 
             error.value = err.message;
+            errorInstance.value = err;
             onError?.(err);
         } finally {
             isLoading.value = false;
@@ -132,6 +144,7 @@ export const usePasskeyRegister = ({
         register,
         isLoading,
         error,
+        errorInstance,
         isSupported,
     };
 };

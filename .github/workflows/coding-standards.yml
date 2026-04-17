@@ -1,4 +1,4 @@
-name: fix code styling
+name: Fix Code Styling
 
 on:
     push:
@@ -15,10 +15,10 @@ jobs:
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
             - name: Setup Node.js
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v6
               with:
                   node-version: 20
 
@@ -32,6 +32,6 @@ jobs:
               run: npm run lint -- --fix
 
             - name: Commit linted files
-              uses: stefanzweifel/git-auto-commit-action@v5
+              uses: stefanzweifel/git-auto-commit-action@v7
               with:
                   commit_message: "Fix code styling"

@@ -53,9 +53,11 @@ export const usePasskeyVerify = ({
     const onErrorRef = useRef(onError);
     const routesRef = useRef(routes);
 
-    onSuccessRef.current = onSuccess;
-    onErrorRef.current = onError;
-    routesRef.current = routes;
+    useEffect(() => {
+        onSuccessRef.current = onSuccess;
+        onErrorRef.current = onError;
+        routesRef.current = routes;
+    });
 
     const resetError = () => {
         setError(null);
@@ -162,9 +164,11 @@ export const usePasskeyRegister = ({
     const onErrorRef = useRef(onError);
     const routesRef = useRef(routes);
 
-    onSuccessRef.current = onSuccess;
-    onErrorRef.current = onError;
-    routesRef.current = routes;
+    useEffect(() => {
+        onSuccessRef.current = onSuccess;
+        onErrorRef.current = onError;
+        routesRef.current = routes;
+    });
 
     const register = useCallback(async (name: string): Promise<void> => {
         setIsLoading(true);

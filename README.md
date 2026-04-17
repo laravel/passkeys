@@ -162,6 +162,12 @@ const {
 {#if registerError}<p class="error">{registerError}</p>{/if}
 ```
 
+## Passkey Autofill
+
+When `autofill: true` is passed, the hook asks the browser to surface saved passkeys inside the native credential-picker dropdown. The browser attaches that dropdown to an `<input>` whose `autocomplete` attribute includes the `webauthn` token (typically alongside `username` or `email`). If no such input is mounted by the time the autofill request starts, the dropdown has nowhere to anchor and silently shows nothing — no error, no console warning, just no picker.
+
+If the browser doesn't support autofill (checked via `isAutofillSupported()`) or the user dismisses the picker, the hook falls back to doing nothing and your explicit "Sign in with passkey" button still works.
+
 ## Core API
 
 ### Public Methods

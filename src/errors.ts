@@ -39,16 +39,6 @@ export class PasskeyExistsError extends PasskeyError {
 }
 
 /**
- * Thrown when no passkey is found (during authentication).
- */
-export class NoPasskeyFoundError extends PasskeyError {
-    constructor() {
-        super("No passkey found for this account.");
-        this.name = "NoPasskeyFoundError";
-    }
-}
-
-/**
  * Convert WebAuthn errors to friendly passkey errors.
  */
 export const toPasskeyError = (error: unknown): PasskeyError => {

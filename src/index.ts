@@ -5,7 +5,6 @@ export {
     NotSupportedError,
     UserCancelledError,
     PasskeyExistsError,
-    NoPasskeyFoundError,
 } from "./errors";
 
 export { defaultRoutes } from "./routes";

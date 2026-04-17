@@ -26,6 +26,7 @@ export const usePasskeyVerify = ({
 }: UsePasskeyVerifyOptions = {}) => {
     const isLoading = ref(false);
     const error = ref<string | null>(null);
+    const isSupported = ref(false);
     const errorInstance = ref<PasskeyError | null>(null);
 
     const resetError = () => {
@@ -56,6 +57,8 @@ export const usePasskeyVerify = ({
     };
 
     onMounted(async () => {
+        isSupported.value = Passkeys.isSupported();
+
         if (!autofill) {
             return;
         }
@@ -97,7 +100,7 @@ export const usePasskeyVerify = ({
         isLoading,
         error,
         errorInstance,
-        isSupported: Passkeys.isSupported(),
+        isSupported,
     };
 };
 
@@ -108,7 +111,12 @@ export const usePasskeyRegister = ({
 }: UsePasskeyRegisterOptions = {}) => {
     const isLoading = ref(false);
     const error = ref<string | null>(null);
+    const isSupported = ref(false);
     const errorInstance = ref<PasskeyError | null>(null);
+
+    onMounted(() => {
+        isSupported.value = Passkeys.isSupported();
+    });
 
     const register = async (name: string) => {
         isLoading.value = true;
@@ -137,6 +145,6 @@ export const usePasskeyRegister = ({
         isLoading,
         error,
         errorInstance,
-        isSupported: Passkeys.isSupported(),
+        isSupported,
     };
 };

@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error -- no @types/react-dom installed; only used for SSR test
+import { renderToString } from "react-dom/server";
 import { Passkeys } from "../../src/passkeys";
 import { PasskeyError, PasskeyExistsError } from "../../src/errors";
 import { usePasskeyVerify, usePasskeyRegister } from "../../src/adapters/react";
@@ -42,6 +45,21 @@ describe("React adapter", () => {
             const { result } = renderHook(() => usePasskeyVerify({ routes }));
 
             expect(result.current.isSupported).toBe(false);
+        });
+
+        it("renders isSupported as false during SSR", () => {
+            (Passkeys.isSupported as Mock).mockReturnValue(true);
+
+            function Probe() {
+                const { isSupported } = usePasskeyVerify({ routes });
+
+                return <span>{String(isSupported)}</span>;
+            }
+
+            const html = renderToString(<Probe />);
+
+            expect(html).toContain("false");
+            expect(Passkeys.isSupported).not.toHaveBeenCalled();
         });
 
         it("calls Passkeys.verify with routes and updates state on success", async () => {

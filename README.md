@@ -127,40 +127,46 @@ const {
 
 ### Svelte
 
+Access the returned values through the hook object (don't destructure), so Svelte's reactivity stays live:
+
 ```svelte
 <script>
     import { usePasskeyVerify, usePasskeyRegister } from "@laravel/passkeys/svelte";
 
-    const { verify, isLoading: verifyLoading, error: verifyError, isSupported } =
-        usePasskeyVerify({
-            autofill: true,
-            onSuccess: (response) => {
-                if (response.redirect) window.location.href = response.redirect;
-            },
-        });
+    const verify = usePasskeyVerify({
+        autofill: true,
+        onSuccess: (response) => {
+            if (response.redirect) window.location.href = response.redirect;
+        },
+    });
 
+    const register = usePasskeyRegister();
     let name = $state("");
-    const { register, isLoading: registerLoading, error: registerError } =
-        usePasskeyRegister();
 </script>
 
 <!-- Include webauthn and set autofill: true to show passkeys in the input -->
 <input type="email" autocomplete="email webauthn" />
 
-<button onclick={verify} disabled={!isSupported || verifyLoading}>
-    {verifyLoading ? "Authenticating..." : "Sign in with passkey"}
+<button onclick={verify.verify} disabled={!verify.isSupported || verify.isLoading}>
+    {verify.isLoading ? "Authenticating..." : "Sign in with passkey"}
 </button>
-{#if verifyError}<p class="error">{verifyError}</p>{/if}
+{#if verify.error}<p class="error">{verify.error}</p>{/if}
 
 <input bind:value={name} placeholder="Passkey name" />
 <button
-    onclick={() => register(name)}
-    disabled={registerLoading || !name}
+    onclick={() => register.register(name)}
+    disabled={register.isLoading || !name}
 >
-    {registerLoading ? "Registering..." : "Add passkey"}
+    {register.isLoading ? "Registering..." : "Add passkey"}
 </button>
-{#if registerError}<p class="error">{registerError}</p>{/if}
+{#if register.error}<p class="error">{register.error}</p>{/if}
 ```
+
+## Server-Side Rendering
+
+WebAuthn is a browser-only API. The framework hooks are SSR-safe: on the server and during hydration, `isSupported` renders as `false`, then updates to the real value after the component mounts. This avoids hydration warnings without any user-visible flash — in Vue and Svelte the post-mount update runs as a microtask before the browser paints; in React it's handled by `useSyncExternalStore` (client-only apps see the real value on the first render).
+
+If you need the synchronous value outside a component lifecycle, call `Passkeys.isSupported()` directly — it returns `false` under Node without throwing.
 
 ## Passkey Autofill
 

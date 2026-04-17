@@ -26,6 +26,7 @@ export function usePasskeyVerify({
 }: UsePasskeyVerifyOptions = {}) {
     let isLoading = $state(false);
     let error = $state<string | null>(null);
+    let isSupported = $state(false);
     let errorInstance = $state<PasskeyError | null>(null);
 
     const resetError = () => {
@@ -56,6 +57,8 @@ export function usePasskeyVerify({
     };
 
     onMount(() => {
+        isSupported = Passkeys.isSupported();
+
         if (!autofill) {
             return;
         }
@@ -104,7 +107,7 @@ export function usePasskeyVerify({
             return errorInstance;
         },
         get isSupported() {
-            return Passkeys.isSupported();
+            return isSupported;
         },
     };
 }
@@ -116,7 +119,12 @@ export function usePasskeyRegister({
 }: UsePasskeyRegisterOptions = {}) {
     let isLoading = $state(false);
     let error = $state<string | null>(null);
+    let isSupported = $state(false);
     let errorInstance = $state<PasskeyError | null>(null);
+
+    onMount(() => {
+        isSupported = Passkeys.isSupported();
+    });
 
     const register = async (name: string) => {
         isLoading = true;
@@ -152,7 +160,7 @@ export function usePasskeyRegister({
             return errorInstance;
         },
         get isSupported() {
-            return Passkeys.isSupported();
+            return isSupported;
         },
     };
 }

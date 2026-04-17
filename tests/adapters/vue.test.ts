@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
-import { defineComponent, h } from "vue";
+import { defineComponent, h, createSSRApp } from "vue";
+import { renderToString } from "@vue/server-renderer";
 import { Passkeys } from "../../src/passkeys";
+import { PasskeyError, PasskeyExistsError } from "../../src/errors";
 import { usePasskeyVerify, usePasskeyRegister } from "../../src/adapters/vue";
 
 vi.mock("../../src/passkeys", () => ({
@@ -42,7 +44,7 @@ const createVerifyWrapper = (autofill = false) =>
                 h(
                     "span",
                     { "data-supported": "" },
-                    String(passkey.isSupported),
+                    String(passkey.isSupported.value),
                 ),
                 h(
                     "button",
@@ -65,7 +67,11 @@ const RegisterWrapper = defineComponent({
         return h("div", [
             h("span", { "data-loading": "" }, String(passkey.isLoading.value)),
             h("span", { "data-error": "" }, passkey.error.value ?? ""),
-            h("span", { "data-supported": "" }, String(passkey.isSupported)),
+            h(
+                "span",
+                { "data-supported": "" },
+                String(passkey.isSupported.value),
+            ),
             h(
                 "button",
                 {
@@ -95,6 +101,26 @@ describe("Vue adapter", () => {
             expect(wrapper.find("[data-loading]").text()).toBe("false");
             expect(wrapper.find("[data-error]").text()).toBe("");
             expect(wrapper.find("[data-supported]").text()).toBe("true");
+        });
+
+        it("renders isSupported as false during SSR", async () => {
+            (Passkeys.isSupported as Mock).mockReturnValue(true);
+
+            const Probe = defineComponent({
+                setup() {
+                    const { isSupported } = usePasskeyVerify({ routes });
+
+                    return { isSupported };
+                },
+                render() {
+                    return h("span", String(this.isSupported));
+                },
+            });
+
+            const html = await renderToString(createSSRApp(Probe));
+
+            expect(html).toContain("false");
+            expect(Passkeys.isSupported).not.toHaveBeenCalled();
         });
 
         it("calls Passkeys.verify with routes and calls onSuccess on success", async () => {
@@ -129,9 +155,30 @@ describe("Vue adapter", () => {
             expect(wrapper.find("[data-error]").text()).toBe("Verify failed");
             const vm = wrapper.vm as unknown as {
                 onError: ReturnType<typeof vi.fn>;
+                passkey: { errorInstance: { value: unknown } };
             };
+            expect(vm.passkey.errorInstance.value).toBeInstanceOf(PasskeyError);
             expect(vm.onError).toHaveBeenCalledWith(
                 expect.objectContaining({ message: "Verify failed" }),
+            );
+        });
+
+        it("exposes typed error instance for instanceof branching", async () => {
+            (Passkeys.verify as Mock).mockRejectedValue(
+                new PasskeyExistsError(),
+            );
+
+            const wrapper = mount(createVerifyWrapper());
+            await flushPromises();
+
+            await wrapper.find("[data-verify]").trigger("click");
+            await flushPromises();
+
+            const vm = wrapper.vm as unknown as {
+                passkey: { errorInstance: { value: unknown } };
+            };
+            expect(vm.passkey.errorInstance.value).toBeInstanceOf(
+                PasskeyExistsError,
             );
         });
 

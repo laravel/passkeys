@@ -127,40 +127,52 @@ const {
 
 ### Svelte
 
+Access the returned values through the hook object (don't destructure), so Svelte's reactivity stays live:
+
 ```svelte
 <script>
     import { usePasskeyVerify, usePasskeyRegister } from "@laravel/passkeys/svelte";
 
-    const { verify, isLoading: verifyLoading, error: verifyError, isSupported } =
-        usePasskeyVerify({
-            autofill: true,
-            onSuccess: (response) => {
-                if (response.redirect) window.location.href = response.redirect;
-            },
-        });
+    const verify = usePasskeyVerify({
+        autofill: true,
+        onSuccess: (response) => {
+            if (response.redirect) window.location.href = response.redirect;
+        },
+    });
 
+    const register = usePasskeyRegister();
     let name = $state("");
-    const { register, isLoading: registerLoading, error: registerError } =
-        usePasskeyRegister();
 </script>
 
 <!-- Include webauthn and set autofill: true to show passkeys in the input -->
 <input type="email" autocomplete="email webauthn" />
 
-<button onclick={verify} disabled={!isSupported || verifyLoading}>
-    {verifyLoading ? "Authenticating..." : "Sign in with passkey"}
+<button onclick={verify.verify} disabled={!verify.isSupported || verify.isLoading}>
+    {verify.isLoading ? "Authenticating..." : "Sign in with passkey"}
 </button>
-{#if verifyError}<p class="error">{verifyError}</p>{/if}
+{#if verify.error}<p class="error">{verify.error}</p>{/if}
 
 <input bind:value={name} placeholder="Passkey name" />
 <button
-    onclick={() => register(name)}
-    disabled={registerLoading || !name}
+    onclick={() => register.register(name)}
+    disabled={register.isLoading || !name}
 >
-    {registerLoading ? "Registering..." : "Add passkey"}
+    {register.isLoading ? "Registering..." : "Add passkey"}
 </button>
-{#if registerError}<p class="error">{registerError}</p>{/if}
+{#if register.error}<p class="error">{register.error}</p>{/if}
 ```
+
+## Server-Side Rendering
+
+WebAuthn is a browser-only API. The framework hooks are SSR-safe: on the server and during hydration, `isSupported` renders as `false`, then updates to the real value after the component mounts. This avoids hydration warnings without any user-visible flash — in Vue and Svelte the post-mount update runs as a microtask before the browser paints; in React it's handled by `useSyncExternalStore` (client-only apps see the real value on the first render).
+
+If you need the synchronous value outside a component lifecycle, call `Passkeys.isSupported()` directly — it returns `false` under Node without throwing.
+
+## Passkey Autofill
+
+When `autofill: true` is passed, the hook asks the browser to surface saved passkeys inside the native credential-picker dropdown. The browser attaches that dropdown to an `<input>` whose `autocomplete` attribute includes the `webauthn` token (typically alongside `username` or `email`). If no such input is mounted by the time the autofill request starts, the dropdown has nowhere to anchor and silently shows nothing — no error, no console warning, just no picker.
+
+If the browser doesn't support autofill (checked via `isAutofillSupported()`) or the user dismisses the picker, the hook falls back to doing nothing and your explicit "Sign in with passkey" button still works.
 
 ## Core API
 
@@ -254,6 +266,35 @@ usePasskeyRegister({
         window.location.reload();
     },
 });
+```
+
+## Typed Errors
+
+All ceremony failures are converted to `PasskeyError` subclasses so you can branch on error type:
+
+| Class                | Thrown when                                                  |
+| -------------------- | ------------------------------------------------------------ |
+| `NotSupportedError`  | The browser does not support WebAuthn                        |
+| `UserCancelledError` | The user dismissed the native prompt                         |
+| `PasskeyExistsError` | A passkey for this account/device is already registered      |
+| `PasskeyError`       | Base class; used for server errors and any unmapped failures |
+
+`Passkeys.register()` and `Passkeys.verify()` throw these directly. The framework adapters expose them two ways: the `onError` callback receives the typed instance, and each hook returns an `errorInstance` field (alongside the string `error`) so you can branch from markup:
+
+```jsx
+import { PasskeyExistsError } from "@laravel/passkeys";
+import { usePasskeyRegister } from "@laravel/passkeys/react";
+
+const { register, error, errorInstance } = usePasskeyRegister();
+
+// ...
+{
+    errorInstance instanceof PasskeyExistsError ? (
+        <p>You already registered a passkey on this device.</p>
+    ) : error ? (
+        <p className="error">{error}</p>
+    ) : null;
+}
 ```
 
 ## Type Compatibility

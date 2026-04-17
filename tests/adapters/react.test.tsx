@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error -- no @types/react-dom installed; only used for SSR test
+import { renderToString } from "react-dom/server";
 import { Passkeys } from "../../src/passkeys";
+import { PasskeyError, PasskeyExistsError } from "../../src/errors";
 import { usePasskeyVerify, usePasskeyRegister } from "../../src/adapters/react";
 
 vi.mock("../../src/passkeys", () => ({
@@ -43,6 +47,21 @@ describe("React adapter", () => {
             expect(result.current.isSupported).toBe(false);
         });
 
+        it("renders isSupported as false during SSR", () => {
+            (Passkeys.isSupported as Mock).mockReturnValue(true);
+
+            function Probe() {
+                const { isSupported } = usePasskeyVerify({ routes });
+
+                return <span>{String(isSupported)}</span>;
+            }
+
+            const html = renderToString(<Probe />);
+
+            expect(html).toContain("false");
+            expect(Passkeys.isSupported).not.toHaveBeenCalled();
+        });
+
         it("calls Passkeys.verify with routes and updates state on success", async () => {
             const response = { redirect: "/dashboard" };
             (Passkeys.verify as Mock).mockResolvedValue(response);
@@ -83,8 +102,29 @@ describe("React adapter", () => {
             });
 
             expect(result.current.error).toBe("Verify failed");
+            expect(result.current.errorInstance).toBeInstanceOf(PasskeyError);
             expect(onError).toHaveBeenCalledWith(
                 expect.objectContaining({ message: "Verify failed" }),
+            );
+        });
+
+        it("exposes typed error instance for instanceof branching", async () => {
+            (Passkeys.verify as Mock).mockRejectedValue(
+                new PasskeyExistsError(),
+            );
+
+            const { result } = renderHook(() => usePasskeyVerify({ routes }));
+
+            await act(async () => {
+                result.current.verify();
+            });
+
+            await waitFor(() => {
+                expect(result.current.isLoading).toBe(false);
+            });
+
+            expect(result.current.errorInstance).toBeInstanceOf(
+                PasskeyExistsError,
             );
         });
 

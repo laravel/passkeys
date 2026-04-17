@@ -144,6 +144,31 @@ describe("http", () => {
             });
         });
 
+        it("preserves raw = characters inside the XSRF cookie value", async () => {
+            Object.defineProperty(document, "cookie", {
+                writable: true,
+                value: "XSRF-TOKEN=abc=def",
+            });
+
+            fetchMock.mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve({}),
+            });
+
+            await post("/api/test", {});
+
+            expect(fetchMock).toHaveBeenCalledWith("/api/test", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    "X-XSRF-TOKEN": "abc=def",
+                },
+                credentials: "same-origin",
+                body: JSON.stringify({}),
+            });
+        });
+
         it("decodes URL-encoded XSRF cookie", async () => {
             Object.defineProperty(document, "cookie", {
                 writable: true,

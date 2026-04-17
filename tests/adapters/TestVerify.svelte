@@ -15,6 +15,7 @@
 <div>
     <span data-testid="loading">{passkey.isLoading}</span>
     <span data-testid="error">{passkey.error ?? ""}</span>
+    <span data-testid="error-instance-name">{passkey.errorInstance?.name ?? ""}</span>
     <span data-testid="supported">{passkey.isSupported}</span>
     <button data-testid="verify" onclick={() => passkey.verify()}>Verify</button>
 </div>

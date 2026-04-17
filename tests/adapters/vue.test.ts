@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import { defineComponent, h } from "vue";
 import { Passkeys } from "../../src/passkeys";
+import { PasskeyError, PasskeyExistsError } from "../../src/errors";
 import { usePasskeyVerify, usePasskeyRegister } from "../../src/adapters/vue";
 
 vi.mock("../../src/passkeys", () => ({
@@ -129,9 +130,30 @@ describe("Vue adapter", () => {
             expect(wrapper.find("[data-error]").text()).toBe("Verify failed");
             const vm = wrapper.vm as unknown as {
                 onError: ReturnType<typeof vi.fn>;
+                passkey: { errorInstance: { value: unknown } };
             };
+            expect(vm.passkey.errorInstance.value).toBeInstanceOf(PasskeyError);
             expect(vm.onError).toHaveBeenCalledWith(
                 expect.objectContaining({ message: "Verify failed" }),
+            );
+        });
+
+        it("exposes typed error instance for instanceof branching", async () => {
+            (Passkeys.verify as Mock).mockRejectedValue(
+                new PasskeyExistsError(),
+            );
+
+            const wrapper = mount(createVerifyWrapper());
+            await flushPromises();
+
+            await wrapper.find("[data-verify]").trigger("click");
+            await flushPromises();
+
+            const vm = wrapper.vm as unknown as {
+                passkey: { errorInstance: { value: unknown } };
+            };
+            expect(vm.passkey.errorInstance.value).toBeInstanceOf(
+                PasskeyExistsError,
             );
         });
 

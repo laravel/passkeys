@@ -256,6 +256,33 @@ usePasskeyRegister({
 });
 ```
 
+## Typed Errors
+
+All ceremony failures are converted to `PasskeyError` subclasses so you can branch on error type:
+
+| Class                | Thrown when                                                  |
+| -------------------- | ------------------------------------------------------------ |
+| `NotSupportedError`  | The browser does not support WebAuthn                        |
+| `UserCancelledError` | The user dismissed the native prompt                         |
+| `PasskeyExistsError` | A passkey for this account/device is already registered      |
+| `PasskeyError`       | Base class; used for server errors and any unmapped failures |
+
+`Passkeys.register()` and `Passkeys.verify()` throw these directly. The framework adapters expose them two ways: the `onError` callback receives the typed instance, and each hook returns an `errorInstance` field (alongside the string `error`) so you can branch from markup:
+
+```jsx
+import { PasskeyExistsError } from "@laravel/passkeys";
+import { usePasskeyRegister } from "@laravel/passkeys/react";
+
+const { register, error, errorInstance } = usePasskeyRegister();
+
+// ...
+{errorInstance instanceof PasskeyExistsError ? (
+    <p>You already registered a passkey on this device.</p>
+) : error ? (
+    <p className="error">{error}</p>
+) : null}
+```
+
 ## Type Compatibility
 
 This package uses TypeScript types from [`@simplewebauthn/browser`](https://www.npmjs.com/package/@simplewebauthn/browser). These types are fully compatible with the JSON output from the [`web-auth/webauthn-lib`](https://packagist.org/packages/web-auth/webauthn-lib) PHP package.

@@ -276,11 +276,13 @@ import { usePasskeyRegister } from "@laravel/passkeys/react";
 const { register, error, errorInstance } = usePasskeyRegister();
 
 // ...
-{errorInstance instanceof PasskeyExistsError ? (
-    <p>You already registered a passkey on this device.</p>
-) : error ? (
-    <p className="error">{error}</p>
-) : null}
+{
+    errorInstance instanceof PasskeyExistsError ? (
+        <p>You already registered a passkey on this device.</p>
+    ) : error ? (
+        <p className="error">{error}</p>
+    ) : null;
+}
 ```
 
 ## Type Compatibility

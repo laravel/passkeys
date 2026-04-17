@@ -157,6 +157,39 @@ describe("React adapter", () => {
             expect(Passkeys.autofill).toHaveBeenCalledWith({ routes });
         });
 
+        it("skips post-unmount callbacks when autofill resolves after unmount", async () => {
+            (Passkeys.isAutofillSupported as Mock).mockResolvedValue(true);
+
+            let resolveAutofill: (value: unknown) => void = () => {};
+            (Passkeys.autofill as Mock).mockReturnValue(
+                new Promise((resolve) => {
+                    resolveAutofill = resolve;
+                }),
+            );
+
+            const onSuccess = vi.fn();
+            const onError = vi.fn();
+            const { unmount } = renderHook(() =>
+                usePasskeyVerify({
+                    routes,
+                    onSuccess,
+                    onError,
+                    autofill: true,
+                }),
+            );
+
+            await waitFor(() => {
+                expect(Passkeys.autofill).toHaveBeenCalled();
+            });
+
+            unmount();
+            resolveAutofill({ redirect: "/home" });
+            await Promise.resolve();
+
+            expect(onSuccess).not.toHaveBeenCalled();
+            expect(onError).not.toHaveBeenCalled();
+        });
+
         it("does not call autofill when enabled but unsupported", async () => {
             (Passkeys.isAutofillSupported as Mock).mockResolvedValue(false);
 

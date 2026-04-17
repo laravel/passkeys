@@ -90,12 +90,14 @@ export const usePasskeyVerify = ({
             return;
         }
 
+        let cancelled = false;
+
         Passkeys.cancel();
 
         const attemptToAutofill = async (): Promise<void> => {
             const supported = await Passkeys.isAutofillSupported();
 
-            if (!supported) {
+            if (cancelled || !supported) {
                 return;
             }
 
@@ -107,10 +109,16 @@ export const usePasskeyVerify = ({
                     routes: routesRef.current,
                 });
 
-                if (response) {
-                    onSuccessRef.current?.(response);
+                if (cancelled || !response) {
+                    return;
                 }
+
+                onSuccessRef.current?.(response);
             } catch (e) {
+                if (cancelled) {
+                    return;
+                }
+
                 handleError(e);
             } finally {
                 setIsLoading(false);
@@ -120,6 +128,7 @@ export const usePasskeyVerify = ({
         void attemptToAutofill();
 
         return () => {
+            cancelled = true;
             Passkeys.cancel();
         };
     }, [autofill]);

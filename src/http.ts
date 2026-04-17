@@ -35,15 +35,16 @@ const getCsrfTokenFromMetaTag = (): CsrfToken | null => {
  * Get the CSRF token from the XSRF-TOKEN cookie.
  */
 const getCsrfTokenFromCookie = (): CsrfToken | null => {
+    const cookieIdentifier = "XSRF-TOKEN=";
     const cookie = document.cookie
         .split("; ")
-        .find((row) => row.startsWith("XSRF-TOKEN="));
+        .find((row) => row.startsWith(cookieIdentifier));
 
     if (!cookie) {
         return null;
     }
 
-    const value = cookie.split("=")[1];
+    const value = cookie.slice(cookieIdentifier.length);
 
     return value
         ? { header: "X-XSRF-TOKEN", value: decodeURIComponent(value) }

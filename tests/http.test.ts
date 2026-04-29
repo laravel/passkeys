@@ -50,6 +50,23 @@ describe("http", () => {
             expect(result).toEqual({ data: "test" });
         });
 
+        it("uses provided credentials mode when supplied", async () => {
+            fetchMock.mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve({}),
+            });
+
+            await get("/api/test", "include");
+
+            expect(fetchMock).toHaveBeenCalledWith("/api/test", {
+                method: "GET",
+                headers: {
+                    Accept: "application/json",
+                },
+                credentials: "include",
+            });
+        });
+
         it("throws error on non-ok response", async () => {
             fetchMock.mockResolvedValue({
                 ok: false,
@@ -92,6 +109,25 @@ describe("http", () => {
                 body: JSON.stringify({ name: "test" }),
             });
             expect(result).toEqual({ success: true });
+        });
+
+        it("uses provided credentials mode when supplied", async () => {
+            fetchMock.mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve({}),
+            });
+
+            await post("/api/test", { name: "test" }, "include");
+
+            expect(fetchMock).toHaveBeenCalledWith("/api/test", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({ name: "test" }),
+            });
         });
 
         it("includes CSRF token from meta tag", async () => {

@@ -56,7 +56,10 @@ export const Passkeys = {
             });
 
             const { options: optionsJSON } =
-                await get<RegistrationOptionsResponse>(routes.optionsRoute);
+                await get<RegistrationOptionsResponse>(
+                    routes.optionsRoute,
+                    options.credentials,
+                );
 
             const credential = await startRegistration({ optionsJSON });
 
@@ -68,6 +71,7 @@ export const Passkeys = {
             return await post<RegistrationResponse>(
                 routes.submitRoute,
                 request,
+                options.credentials,
             );
         } catch (error) {
             throw toPasskeyError(error);
@@ -93,13 +97,18 @@ export const Passkeys = {
 
             const { options: optionsJSON } = await get<VerifyOptionsResponse>(
                 routes.optionsRoute,
+                options.credentials,
             );
 
             const credential = await startAuthentication({ optionsJSON });
 
             const request: VerifyRequest = { credential };
 
-            return await post<VerifyResponse>(routes.submitRoute, request);
+            return await post<VerifyResponse>(
+                routes.submitRoute,
+                request,
+                options.credentials,
+            );
         } catch (error) {
             throw toPasskeyError(error);
         }
@@ -135,6 +144,7 @@ export const Passkeys = {
 
             const { options: optionsJSON } = await get<VerifyOptionsResponse>(
                 routes.optionsRoute,
+                options.credentials,
             );
 
             const credential = await startAuthentication({
@@ -144,7 +154,11 @@ export const Passkeys = {
 
             const request: VerifyRequest = { credential };
 
-            return await post<VerifyResponse>(routes.submitRoute, request);
+            return await post<VerifyResponse>(
+                routes.submitRoute,
+                request,
+                options.credentials,
+            );
         } catch (error) {
             if (
                 error instanceof Error &&

@@ -135,6 +135,35 @@ describe("Passkeys", () => {
             expect(result).toEqual(mockStoreResponse);
         });
 
+        it("forwards a credentials override to fetch on register", async () => {
+            fetchMock
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve(mockOptionsResponse),
+                })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve(mockStoreResponse),
+                });
+            (startRegistration as Mock).mockResolvedValue(mockCredential);
+
+            await Passkeys.register({
+                name: "MacBook Pro",
+                credentials: "include",
+            });
+
+            expect(fetchMock).toHaveBeenNthCalledWith(
+                1,
+                "/user/passkeys/options",
+                expect.objectContaining({ credentials: "include" }),
+            );
+            expect(fetchMock).toHaveBeenNthCalledWith(
+                2,
+                "/user/passkeys",
+                expect.objectContaining({ credentials: "include" }),
+            );
+        });
+
         it("allows explicit route overrides per register call", async () => {
             fetchMock
                 .mockResolvedValueOnce({
@@ -239,6 +268,32 @@ describe("Passkeys", () => {
                 optionsJSON: mockOptionsResponse.options,
             });
             expect(result).toEqual(mockVerifyResponse);
+        });
+
+        it("forwards a credentials override to fetch on verify", async () => {
+            fetchMock
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve(mockOptionsResponse),
+                })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve(mockVerifyResponse),
+                });
+            (startAuthentication as Mock).mockResolvedValue(mockCredential);
+
+            await Passkeys.verify({ credentials: "include" });
+
+            expect(fetchMock).toHaveBeenNthCalledWith(
+                1,
+                "/passkeys/login/options",
+                expect.objectContaining({ credentials: "include" }),
+            );
+            expect(fetchMock).toHaveBeenNthCalledWith(
+                2,
+                "/passkeys/login",
+                expect.objectContaining({ credentials: "include" }),
+            );
         });
 
         it("allows explicit route overrides per verify call", async () => {
@@ -387,6 +442,33 @@ describe("Passkeys", () => {
                 useBrowserAutofill: true,
             });
             expect(result).toEqual(mockResponse);
+        });
+
+        it("forwards a credentials override to fetch on autofill", async () => {
+            const mockResponse = { redirect: "/dashboard" };
+            fetchMock
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve(mockOptionsResponse),
+                })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve(mockResponse),
+                });
+            (startAuthentication as Mock).mockResolvedValue(mockCredential);
+
+            await Passkeys.autofill({ credentials: "include" });
+
+            expect(fetchMock).toHaveBeenNthCalledWith(
+                1,
+                "/passkeys/login/options",
+                expect.objectContaining({ credentials: "include" }),
+            );
+            expect(fetchMock).toHaveBeenNthCalledWith(
+                2,
+                "/passkeys/login",
+                expect.objectContaining({ credentials: "include" }),
+            );
         });
 
         it("allows explicit route overrides per autofill call", async () => {

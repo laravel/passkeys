@@ -232,8 +232,26 @@ type RouteOverrides = {
         options?: string;
         submit?: string;
     };
+    credentials?: RequestCredentials;
 };
 ```
+
+### Cross-Origin Requests (SPAs)
+
+By default, requests are made with `credentials: "same-origin"`, which works for traditional Blade apps where the frontend and backend share an origin.
+
+For SPAs hosted on a different origin from the Laravel backend (e.g. a Nuxt frontend talking to a Laravel API via Sanctum), pass `credentials: "include"` so the browser sends cookies with cross-origin requests:
+
+```js
+await Passkeys.verify({ credentials: "include" });
+
+await Passkeys.register({
+    name: "MacBook Pro",
+    credentials: "include",
+});
+```
+
+Make sure your Laravel backend is configured for cross-origin cookies (`config/cors.php` with `supports_credentials => true`, and `SESSION_DOMAIN` set appropriately).
 
 ### React / Vue / Svelte Route Overrides
 
@@ -267,6 +285,8 @@ usePasskeyRegister({
     },
 });
 ```
+
+Both adapters also accept a `credentials` option (forwarded to the underlying fetch calls), e.g. `usePasskeyVerify({ credentials: "include" })` for cross-origin SPA setups.
 
 ## Typed Errors
 

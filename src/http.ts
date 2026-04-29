@@ -54,13 +54,16 @@ const getCsrfTokenFromCookie = (): CsrfToken | null => {
 /**
  * Make a GET request to the Laravel backend.
  */
-export const get = async <T>(url: string): Promise<T> => {
+export const get = async <T>(
+    url: string,
+    credentials: RequestCredentials = "same-origin",
+): Promise<T> => {
     const response = await fetch(url, {
         method: "GET",
         headers: {
             Accept: "application/json",
         },
-        credentials: "same-origin",
+        credentials,
     });
 
     if (!response.ok) {
@@ -73,7 +76,11 @@ export const get = async <T>(url: string): Promise<T> => {
 /**
  * Make a POST request to the Laravel backend.
  */
-export const post = async <T>(url: string, data: unknown): Promise<T> => {
+export const post = async <T>(
+    url: string,
+    data: unknown,
+    credentials: RequestCredentials = "same-origin",
+): Promise<T> => {
     const csrf = getCsrfToken();
 
     const headers: Record<string, string> = {
@@ -88,7 +95,7 @@ export const post = async <T>(url: string, data: unknown): Promise<T> => {
     const response = await fetch(url, {
         method: "POST",
         headers,
-        credentials: "same-origin",
+        credentials,
         body: JSON.stringify(data),
     });
 

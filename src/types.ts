@@ -19,6 +19,14 @@ export type RouteOverrides = {
          */
         submit?: string;
     };
+
+    /**
+     * Override the fetch `credentials` mode used for requests.
+     *
+     * Defaults to `"same-origin"`. Set to `"include"` for SPAs hosted on a
+     * different origin from the Laravel backend (e.g. Nuxt + Sanctum).
+     */
+    credentials?: RequestCredentials;
 };
 
 export type RegisterRouteOptions = RouteOverrides;

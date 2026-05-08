@@ -1,0 +1,5 @@
+CHANGELOG.md
+.claude/
+dist/
+docs/
+tests/**/*.svelte

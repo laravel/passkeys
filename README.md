@@ -188,6 +188,21 @@ If the browser doesn't support autofill (checked via `isAutofillSupported()`) or
 | `autofill(options?)`          | Enable passkey autofill on the current page       |
 | `cancel()`                    | Cancel any pending passkey operation              |
 
+### Client Configuration
+
+Use `configure()` to adjust the fetch options used for passkey requests:
+
+```js
+Passkeys.configure({
+    fetch: {
+        credentials: "include",
+        headers: {
+            "X-Tenant": tenantId,
+        },
+    },
+});
+```
+
 ## Expected Endpoints
 
 This package handles communication with your Laravel application and expects the following endpoints:
@@ -235,25 +250,6 @@ type RouteOverrides = {
     };
 };
 ```
-
-### Cross-Origin Requests (SPAs)
-
-By default, requests are made with `credentials: "same-origin"`, which works for traditional Blade apps where the frontend and backend share an origin.
-
-For SPAs hosted on a different origin from the Laravel backend (e.g. a Nuxt frontend talking to a Laravel API via Sanctum), configure fetch with `credentials: "include"` so the browser sends cookies with cross-origin requests:
-
-```js
-Passkeys.configure({
-    fetch: {
-        credentials: "include",
-        headers: {
-            "X-Tenant": tenantId,
-        },
-    },
-});
-```
-
-Make sure your Laravel backend is configured for cross-origin cookies (`config/cors.php` with `supports_credentials => true`, and `SESSION_DOMAIN` set appropriately).
 
 ### React / Vue / Svelte Route Overrides
 

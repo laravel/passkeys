@@ -8,18 +8,13 @@ import type {
 export type { PasskeyRoutes } from "./routes";
 
 export type PasskeysConfig = {
-    /**
-     * Configure the fetch options used for requests to the Laravel backend.
-     */
     fetch?: PasskeysFetchConfig;
 };
 
 export type PasskeysFetchConfig = {
     /**
-     * The fetch `credentials` mode used for requests.
-     *
      * Defaults to `"same-origin"`. Set to `"include"` for SPAs hosted on a
-     * different origin from the Laravel backend.
+     * different origin.
      */
     credentials?: RequestCredentials;
 

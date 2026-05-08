@@ -7,6 +7,28 @@ import type {
 
 export type { PasskeyRoutes } from "./routes";
 
+export type PasskeysConfig = {
+    /**
+     * Configure the fetch options used for requests to the Laravel backend.
+     */
+    fetch?: PasskeysFetchConfig;
+};
+
+export type PasskeysFetchConfig = {
+    /**
+     * The fetch `credentials` mode used for requests.
+     *
+     * Defaults to `"same-origin"`. Set to `"include"` for SPAs hosted on a
+     * different origin from the Laravel backend.
+     */
+    credentials?: RequestCredentials;
+
+    /**
+     * Additional headers included with requests.
+     */
+    headers?: Record<string, string>;
+};
+
 export type RouteOverrides = {
     routes?: {
         /**
@@ -19,14 +41,6 @@ export type RouteOverrides = {
          */
         submit?: string;
     };
-
-    /**
-     * Override the fetch `credentials` mode used for requests.
-     *
-     * Defaults to `"same-origin"`. Set to `"include"` for SPAs hosted on a
-     * different origin from the Laravel backend (e.g. Nuxt + Sanctum).
-     */
-    credentials?: RequestCredentials;
 };
 
 export type RegisterRouteOptions = RouteOverrides;

@@ -6,9 +6,10 @@ import {
     WebAuthnAbortService,
 } from "@simplewebauthn/browser";
 import { NotSupportedError, toPasskeyError } from "./errors";
-import { get, post } from "./http";
+import { configure as configureHttp, get, post } from "./http";
 import { defaultRoutes } from "./routes";
 import type {
+    PasskeysConfig,
     RegisterOptions,
     RegistrationOptionsResponse,
     RegistrationRequest,
@@ -24,6 +25,13 @@ import type {
  * Passkeys client for Laravel applications.
  */
 export const Passkeys = {
+    /**
+     * Configure the passkeys client.
+     */
+    configure(config: PasskeysConfig): void {
+        configureHttp(config);
+    },
+
     /**
      * Check if the browser supports passkeys.
      */
@@ -56,10 +64,7 @@ export const Passkeys = {
             });
 
             const { options: optionsJSON } =
-                await get<RegistrationOptionsResponse>(
-                    routes.optionsRoute,
-                    options.credentials,
-                );
+                await get<RegistrationOptionsResponse>(routes.optionsRoute);
 
             const credential = await startRegistration({ optionsJSON });
 
@@ -71,7 +76,6 @@ export const Passkeys = {
             return await post<RegistrationResponse>(
                 routes.submitRoute,
                 request,
-                options.credentials,
             );
         } catch (error) {
             throw toPasskeyError(error);
@@ -97,18 +101,13 @@ export const Passkeys = {
 
             const { options: optionsJSON } = await get<VerifyOptionsResponse>(
                 routes.optionsRoute,
-                options.credentials,
             );
 
             const credential = await startAuthentication({ optionsJSON });
 
             const request: VerifyRequest = { credential };
 
-            return await post<VerifyResponse>(
-                routes.submitRoute,
-                request,
-                options.credentials,
-            );
+            return await post<VerifyResponse>(routes.submitRoute, request);
         } catch (error) {
             throw toPasskeyError(error);
         }
@@ -144,7 +143,6 @@ export const Passkeys = {
 
             const { options: optionsJSON } = await get<VerifyOptionsResponse>(
                 routes.optionsRoute,
-                options.credentials,
             );
 
             const credential = await startAuthentication({
@@ -154,11 +152,7 @@ export const Passkeys = {
 
             const request: VerifyRequest = { credential };
 
-            return await post<VerifyResponse>(
-                routes.submitRoute,
-                request,
-                options.credentials,
-            );
+            return await post<VerifyResponse>(routes.submitRoute, request);
         } catch (error) {
             if (
                 error instanceof Error &&

@@ -180,6 +180,7 @@ If the browser doesn't support autofill (checked via `isAutofillSupported()`) or
 
 | Method                        | Description                                       |
 | ----------------------------- | ------------------------------------------------- |
+| `configure(options)`          | Configure the passkeys client                     |
 | `isSupported()`               | Check if the browser supports passkeys            |
 | `isAutofillSupported()`       | Check if the browser supports passkey autofill    |
 | `register({ name, routes? })` | Register a new passkey for the authenticated user |
@@ -232,7 +233,6 @@ type RouteOverrides = {
         options?: string;
         submit?: string;
     };
-    credentials?: RequestCredentials;
 };
 ```
 
@@ -240,14 +240,16 @@ type RouteOverrides = {
 
 By default, requests are made with `credentials: "same-origin"`, which works for traditional Blade apps where the frontend and backend share an origin.
 
-For SPAs hosted on a different origin from the Laravel backend (e.g. a Nuxt frontend talking to a Laravel API via Sanctum), pass `credentials: "include"` so the browser sends cookies with cross-origin requests:
+For SPAs hosted on a different origin from the Laravel backend (e.g. a Nuxt frontend talking to a Laravel API via Sanctum), configure fetch with `credentials: "include"` so the browser sends cookies with cross-origin requests:
 
 ```js
-await Passkeys.verify({ credentials: "include" });
-
-await Passkeys.register({
-    name: "MacBook Pro",
-    credentials: "include",
+Passkeys.configure({
+    fetch: {
+        credentials: "include",
+        headers: {
+            "X-Tenant": tenantId,
+        },
+    },
 });
 ```
 
@@ -285,8 +287,6 @@ usePasskeyRegister({
     },
 });
 ```
-
-Both adapters also accept a `credentials` option (forwarded to the underlying fetch calls), e.g. `usePasskeyVerify({ credentials: "include" })` for cross-origin SPA setups.
 
 ## Typed Errors
 

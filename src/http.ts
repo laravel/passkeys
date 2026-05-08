@@ -1,6 +1,29 @@
+import type { PasskeysConfig } from "./types";
+
 type CsrfToken = {
     header: string;
     value: string;
+};
+
+let config: PasskeysConfig = {};
+
+export const configure = (options: PasskeysConfig): void => {
+    config = {
+        ...config,
+        ...options,
+        fetch: {
+            ...config.fetch,
+            ...options.fetch,
+            headers: {
+                ...config.fetch?.headers,
+                ...options.fetch?.headers,
+            },
+        },
+    };
+};
+
+export const resetConfig = (): void => {
+    config = {};
 };
 
 /**
@@ -54,16 +77,14 @@ const getCsrfTokenFromCookie = (): CsrfToken | null => {
 /**
  * Make a GET request to the Laravel backend.
  */
-export const get = async <T>(
-    url: string,
-    credentials: RequestCredentials = "same-origin",
-): Promise<T> => {
+export const get = async <T>(url: string): Promise<T> => {
     const response = await fetch(url, {
         method: "GET",
         headers: {
             Accept: "application/json",
+            ...config.fetch?.headers,
         },
-        credentials,
+        credentials: config.fetch?.credentials ?? "same-origin",
     });
 
     if (!response.ok) {
@@ -76,16 +97,13 @@ export const get = async <T>(
 /**
  * Make a POST request to the Laravel backend.
  */
-export const post = async <T>(
-    url: string,
-    data: unknown,
-    credentials: RequestCredentials = "same-origin",
-): Promise<T> => {
+export const post = async <T>(url: string, data: unknown): Promise<T> => {
     const csrf = getCsrfToken();
 
     const headers: Record<string, string> = {
         "Content-Type": "application/json",
         Accept: "application/json",
+        ...config.fetch?.headers,
     };
 
     if (csrf) {
@@ -95,7 +113,7 @@ export const post = async <T>(
     const response = await fetch(url, {
         method: "POST",
         headers,
-        credentials,
+        credentials: config.fetch?.credentials ?? "same-origin",
         body: JSON.stringify(data),
     });
 

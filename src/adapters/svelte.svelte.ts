@@ -21,7 +21,6 @@ type UsePasskeyRegisterOptions = RegisterRouteOptions & {
 export function usePasskeyVerify({
     autofill = false,
     routes,
-    credentials,
     onSuccess,
     onError,
 }: UsePasskeyVerifyOptions = {}) {
@@ -48,7 +47,7 @@ export function usePasskeyVerify({
         resetError();
 
         try {
-            const response = await Passkeys.verify({ routes, credentials });
+            const response = await Passkeys.verify({ routes });
             onSuccess?.(response);
         } catch (e) {
             handleError(e);
@@ -79,7 +78,6 @@ export function usePasskeyVerify({
             try {
                 const response = await Passkeys.autofill({
                     routes,
-                    credentials,
                 });
 
                 if (response) {
@@ -116,7 +114,6 @@ export function usePasskeyVerify({
 
 export function usePasskeyRegister({
     routes,
-    credentials,
     onSuccess,
     onError,
 }: UsePasskeyRegisterOptions = {}) {
@@ -138,7 +135,6 @@ export function usePasskeyRegister({
             await Passkeys.register({
                 name,
                 routes,
-                credentials,
             });
             onSuccess?.();
         } catch (e) {

@@ -11,6 +11,8 @@ export { defaultRoutes } from "./routes";
 export type { PasskeyRoutes } from "./routes";
 
 export type {
+    PasskeysConfig,
+    PasskeysFetchConfig,
     RouteOverrides,
     RegisterOptions,
     RegisterRouteOptions,

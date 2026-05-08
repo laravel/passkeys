@@ -35,7 +35,6 @@ const getSupportServerSnapshot = () => false;
 export const usePasskeyVerify = ({
     autofill = false,
     routes,
-    credentials,
     onSuccess,
     onError,
 }: UsePasskeyVerifyOptions = {}) => {
@@ -53,13 +52,11 @@ export const usePasskeyVerify = ({
     const onSuccessRef = useRef(onSuccess);
     const onErrorRef = useRef(onError);
     const routesRef = useRef(routes);
-    const credentialsRef = useRef(credentials);
 
     useEffect(() => {
         onSuccessRef.current = onSuccess;
         onErrorRef.current = onError;
         routesRef.current = routes;
-        credentialsRef.current = credentials;
     });
 
     const resetError = () => {
@@ -81,7 +78,6 @@ export const usePasskeyVerify = ({
         try {
             const response = await Passkeys.verify({
                 routes: routesRef.current,
-                credentials: credentialsRef.current,
             });
             onSuccessRef.current?.(response);
         } catch (e) {
@@ -113,7 +109,6 @@ export const usePasskeyVerify = ({
             try {
                 const response = await Passkeys.autofill({
                     routes: routesRef.current,
-                    credentials: credentialsRef.current,
                 });
 
                 if (cancelled || !response) {
@@ -151,7 +146,6 @@ export const usePasskeyVerify = ({
 
 export const usePasskeyRegister = ({
     routes,
-    credentials,
     onSuccess,
     onError,
 }: UsePasskeyRegisterOptions = {}) => {
@@ -169,13 +163,11 @@ export const usePasskeyRegister = ({
     const onSuccessRef = useRef(onSuccess);
     const onErrorRef = useRef(onError);
     const routesRef = useRef(routes);
-    const credentialsRef = useRef(credentials);
 
     useEffect(() => {
         onSuccessRef.current = onSuccess;
         onErrorRef.current = onError;
         routesRef.current = routes;
-        credentialsRef.current = credentials;
     });
 
     const register = useCallback(async (name: string): Promise<void> => {
@@ -187,7 +179,6 @@ export const usePasskeyRegister = ({
             await Passkeys.register({
                 name,
                 routes: routesRef.current,
-                credentials: credentialsRef.current,
             });
             onSuccessRef.current?.();
         } catch (e) {

@@ -84,9 +84,7 @@ const isInvalidDomainError = (error: Error): boolean =>
     errorCode(error) === "ERROR_INVALID_DOMAIN";
 
 const errorCode = (error: Error): string | undefined =>
-    "code" in error && typeof error.code === "string"
-        ? error.code
-        : undefined;
+    "code" in error && typeof error.code === "string" ? error.code : undefined;
 
 const currentHostname = (): string | undefined =>
     typeof globalThis.location?.hostname === "string" &&

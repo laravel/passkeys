@@ -7,6 +7,23 @@ import type {
 
 export type { PasskeyRoutes } from "./routes";
 
+export type PasskeysConfig = {
+    fetch?: PasskeysFetchConfig;
+};
+
+export type PasskeysFetchConfig = {
+    /**
+     * Defaults to `"same-origin"`. Set to `"include"` for SPAs hosted on a
+     * different origin.
+     */
+    credentials?: RequestCredentials;
+
+    /**
+     * Additional headers included with requests.
+     */
+    headers?: Record<string, string>;
+};
+
 export type RouteOverrides = {
     routes?: {
         /**

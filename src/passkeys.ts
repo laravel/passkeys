@@ -6,9 +6,10 @@ import {
     WebAuthnAbortService,
 } from "@simplewebauthn/browser";
 import { NotSupportedError, toPasskeyError } from "./errors";
-import { get, post } from "./http";
+import { configure as configureHttp, get, post } from "./http";
 import { defaultRoutes } from "./routes";
 import type {
+    PasskeysConfig,
     RegisterOptions,
     RegistrationOptionsResponse,
     RegistrationRequest,
@@ -24,6 +25,13 @@ import type {
  * Passkeys client for Laravel applications.
  */
 export const Passkeys = {
+    /**
+     * Configure the passkeys client.
+     */
+    configure(config: PasskeysConfig): void {
+        configureHttp(config);
+    },
+
     /**
      * Check if the browser supports passkeys.
      */

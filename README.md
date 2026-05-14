@@ -180,12 +180,28 @@ If the browser doesn't support autofill (checked via `isAutofillSupported()`) or
 
 | Method                        | Description                                       |
 | ----------------------------- | ------------------------------------------------- |
+| `configure(options)`          | Configure the passkeys client                     |
 | `isSupported()`               | Check if the browser supports passkeys            |
 | `isAutofillSupported()`       | Check if the browser supports passkey autofill    |
 | `register({ name, routes? })` | Register a new passkey for the authenticated user |
 | `verify(options?)`            | Verify a passkey                                  |
 | `autofill(options?)`          | Enable passkey autofill on the current page       |
 | `cancel()`                    | Cancel any pending passkey operation              |
+
+### Client Configuration
+
+Use `configure()` to adjust the fetch options used for passkey requests:
+
+```js
+Passkeys.configure({
+    fetch: {
+        credentials: "include",
+        headers: {
+            "X-Tenant": tenantId,
+        },
+    },
+});
+```
 
 ## Expected Endpoints
 

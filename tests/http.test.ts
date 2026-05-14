@@ -7,7 +7,7 @@ import {
     vi,
     type Mock,
 } from "vitest";
-import { get, post } from "../src/http";
+import { configure, get, post, resetConfig } from "../src/http";
 
 describe("http", () => {
     let fetchMock: Mock;
@@ -28,6 +28,7 @@ describe("http", () => {
     });
 
     afterEach(() => {
+        resetConfig();
         vi.unstubAllGlobals();
     });
 
@@ -48,6 +49,33 @@ describe("http", () => {
                 credentials: "same-origin",
             });
             expect(result).toEqual({ data: "test" });
+        });
+
+        it("uses configured fetch options when supplied", async () => {
+            fetchMock.mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve({}),
+            });
+
+            configure({
+                fetch: {
+                    credentials: "include",
+                    headers: {
+                        "X-Tenant": "tenant-1",
+                    },
+                },
+            });
+
+            await get("/api/test");
+
+            expect(fetchMock).toHaveBeenCalledWith("/api/test", {
+                method: "GET",
+                headers: {
+                    Accept: "application/json",
+                    "X-Tenant": "tenant-1",
+                },
+                credentials: "include",
+            });
         });
 
         it("throws error on non-ok response", async () => {
@@ -92,6 +120,35 @@ describe("http", () => {
                 body: JSON.stringify({ name: "test" }),
             });
             expect(result).toEqual({ success: true });
+        });
+
+        it("uses configured fetch options when supplied", async () => {
+            fetchMock.mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve({}),
+            });
+
+            configure({
+                fetch: {
+                    credentials: "include",
+                    headers: {
+                        "X-Tenant": "tenant-1",
+                    },
+                },
+            });
+
+            await post("/api/test", { name: "test" });
+
+            expect(fetchMock).toHaveBeenCalledWith("/api/test", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    "X-Tenant": "tenant-1",
+                },
+                credentials: "include",
+                body: JSON.stringify({ name: "test" }),
+            });
         });
 
         it("includes CSRF token from meta tag", async () => {

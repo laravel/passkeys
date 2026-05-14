@@ -9,6 +9,7 @@ import {
 } from "vitest";
 import { Passkeys } from "../src/passkeys";
 import { NotSupportedError } from "../src/errors";
+import { resetConfig } from "../src/http";
 import {
     browserSupportsWebAuthn,
     browserSupportsWebAuthnAutofill,
@@ -30,6 +31,7 @@ describe("Passkeys", () => {
     });
 
     afterEach(() => {
+        resetConfig();
         vi.unstubAllGlobals();
     });
 
@@ -133,6 +135,51 @@ describe("Passkeys", () => {
                 optionsJSON: mockOptionsResponse.options,
             });
             expect(result).toEqual(mockStoreResponse);
+        });
+
+        it("applies configured fetch options to register requests", async () => {
+            fetchMock
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve(mockOptionsResponse),
+                })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve(mockStoreResponse),
+                });
+            (startRegistration as Mock).mockResolvedValue(mockCredential);
+
+            Passkeys.configure({
+                fetch: {
+                    credentials: "include",
+                    headers: {
+                        "X-Tenant": "tenant-1",
+                    },
+                },
+            });
+
+            await Passkeys.register({ name: "MacBook Pro" });
+
+            expect(fetchMock).toHaveBeenNthCalledWith(
+                1,
+                "/user/passkeys/options",
+                expect.objectContaining({
+                    credentials: "include",
+                    headers: expect.objectContaining({
+                        "X-Tenant": "tenant-1",
+                    }),
+                }),
+            );
+            expect(fetchMock).toHaveBeenNthCalledWith(
+                2,
+                "/user/passkeys",
+                expect.objectContaining({
+                    credentials: "include",
+                    headers: expect.objectContaining({
+                        "X-Tenant": "tenant-1",
+                    }),
+                }),
+            );
         });
 
         it("allows explicit route overrides per register call", async () => {

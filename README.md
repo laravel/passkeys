@@ -293,6 +293,7 @@ All ceremony failures are converted to `PasskeyError` subclasses so you can bran
 | `NotSupportedError`  | The browser does not support WebAuthn                        |
 | `UserCancelledError` | The user dismissed the native prompt                         |
 | `PasskeyExistsError` | A passkey for this account/device is already registered      |
+| `InvalidDomainError` | Passkeys are used from an invalid domain                     |
 | `PasskeyError`       | Base class; used for server errors and any unmapped failures |
 
 `Passkeys.register()` and `Passkeys.verify()` throw these directly. The framework adapters expose them two ways: the `onError` callback receives the typed instance, and each hook returns an `errorInstance` field (alongside the string `error`) so you can branch from markup:

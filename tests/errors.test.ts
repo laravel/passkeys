@@ -1,9 +1,10 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
     PasskeyError,
     NotSupportedError,
     UserCancelledError,
     PasskeyExistsError,
+    InvalidDomainError,
     toPasskeyError,
 } from "../src/errors";
 
@@ -33,6 +34,24 @@ describe("toPasskeyError", () => {
         error.name = "NotSupportedError";
 
         expect(toPasskeyError(error)).toBeInstanceOf(NotSupportedError);
+    });
+
+    it("converts SimpleWebAuthn invalid domain errors by code", () => {
+        const error = new Error();
+        Object.assign(error, { code: "ERROR_INVALID_DOMAIN" });
+
+        vi.stubGlobal("location", { hostname: "127.0.0.1" });
+
+        try {
+            const result = toPasskeyError(error);
+
+            expect(result).toBeInstanceOf(InvalidDomainError);
+            expect(result.message).toBe(
+                "Passkeys can't be used on 127.0.0.1. For local development, use localhost.",
+            );
+        } finally {
+            vi.unstubAllGlobals();
+        }
     });
 
     it("wraps unknown errors preserving message", () => {

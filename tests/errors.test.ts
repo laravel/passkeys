@@ -4,6 +4,7 @@ import {
     NotSupportedError,
     UserCancelledError,
     PasskeyExistsError,
+    InvalidDomainError,
     toPasskeyError,
 } from "../src/errors";
 
@@ -33,6 +34,18 @@ describe("toPasskeyError", () => {
         error.name = "NotSupportedError";
 
         expect(toPasskeyError(error)).toBeInstanceOf(NotSupportedError);
+    });
+
+    it("converts SimpleWebAuthn invalid domain errors by code", () => {
+        const error = new Error();
+        Object.assign(error, { code: "ERROR_INVALID_DOMAIN" });
+
+        const result = toPasskeyError(error);
+
+        expect(result).toBeInstanceOf(InvalidDomainError);
+        expect(result.message).toBe(
+            "Passkeys don't work on this domain. If you're developing locally, use localhost instead of 127.0.0.1.",
+        );
     });
 
     it("wraps unknown errors preserving message", () => {

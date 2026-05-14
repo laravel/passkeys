@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
     PasskeyError,
     NotSupportedError,
@@ -40,12 +40,18 @@ describe("toPasskeyError", () => {
         const error = new Error();
         Object.assign(error, { code: "ERROR_INVALID_DOMAIN" });
 
-        const result = toPasskeyError(error);
+        vi.stubGlobal("location", { hostname: "127.0.0.1" });
 
-        expect(result).toBeInstanceOf(InvalidDomainError);
-        expect(result.message).toBe(
-            "Passkeys don't work on this domain. If you're developing locally, use localhost instead of 127.0.0.1.",
-        );
+        try {
+            const result = toPasskeyError(error);
+
+            expect(result).toBeInstanceOf(InvalidDomainError);
+            expect(result.message).toBe(
+                "Passkeys can't be used on 127.0.0.1. For local development, use localhost.",
+            );
+        } finally {
+            vi.unstubAllGlobals();
+        }
     });
 
     it("wraps unknown errors preserving message", () => {

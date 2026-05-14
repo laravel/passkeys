@@ -42,9 +42,11 @@ export class PasskeyExistsError extends PasskeyError {
  * Thrown when passkeys are used from an invalid domain.
  */
 export class InvalidDomainError extends PasskeyError {
-    constructor() {
+    constructor(domain?: string) {
+        const subject = domain ?? "this domain";
+
         super(
-            "Passkeys don't work on this domain. If you're developing locally, use localhost instead of 127.0.0.1.",
+            `Passkeys can't be used on ${subject}. For local development, use localhost.`,
         );
         this.name = "InvalidDomainError";
     }
@@ -63,7 +65,7 @@ export const toPasskeyError = (error: unknown): PasskeyError => {
     }
 
     if (isInvalidDomainError(error)) {
-        return new InvalidDomainError();
+        return new InvalidDomainError(currentHostname());
     }
 
     switch (error.name) {
@@ -84,4 +86,10 @@ const isInvalidDomainError = (error: Error): boolean =>
 const errorCode = (error: Error): string | undefined =>
     "code" in error && typeof error.code === "string"
         ? error.code
+        : undefined;
+
+const currentHostname = (): string | undefined =>
+    typeof globalThis.location?.hostname === "string" &&
+    globalThis.location.hostname.length > 0
+        ? globalThis.location.hostname
         : undefined;

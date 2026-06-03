@@ -6,14 +6,14 @@ All notable changes to this project will be documented in this file.
 
 ### What's Changed
 
-* Pin GitHub Actions to commit SHAs and add Dependabot config by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/passkeys/pull/12
-* Add InvalidDomainError by [@benbjurstrom](https://github.com/benbjurstrom) in https://github.com/laravel/passkeys/pull/13
-* Allow usage of credentials: include by [@RobertBoes](https://github.com/RobertBoes) in https://github.com/laravel/passkeys/pull/8
+- Pin GitHub Actions to commit SHAs and add Dependabot config by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/passkeys/pull/12
+- Add InvalidDomainError by [@benbjurstrom](https://github.com/benbjurstrom) in https://github.com/laravel/passkeys/pull/13
+- Allow usage of credentials: include by [@RobertBoes](https://github.com/RobertBoes) in https://github.com/laravel/passkeys/pull/8
 
 ### New Contributors
 
-* [@benbjurstrom](https://github.com/benbjurstrom) made their first contribution in https://github.com/laravel/passkeys/pull/13
-* [@RobertBoes](https://github.com/RobertBoes) made their first contribution in https://github.com/laravel/passkeys/pull/8
+- [@benbjurstrom](https://github.com/benbjurstrom) made their first contribution in https://github.com/laravel/passkeys/pull/13
+- [@RobertBoes](https://github.com/RobertBoes) made their first contribution in https://github.com/laravel/passkeys/pull/8
 
 **Full Changelog**: https://github.com/laravel/passkeys/compare/v0.1.0...v0.2.0
 

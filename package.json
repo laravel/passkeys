@@ -60,7 +60,7 @@
     },
     "peerDependencies": {
         "react": "^18.0.0 || ^19.0.0",
-        "vue": "^3.0.0",
+        "vue": "^3.3.0",
         "svelte": "^5.0.0"
     },
     "peerDependenciesMeta": {
@@ -89,7 +89,7 @@
         "vite": "^7.0.0",
         "vite-plugin-dts": "^4.5.0",
         "vitest": "^3.0.0",
-        "vue": "^3.0.0",
+        "vue": "^3.3.0",
         "@vue/test-utils": "^2.4.0",
         "@sveltejs/vite-plugin-svelte": "^6.0.0",
         "react": "^18.2.0",

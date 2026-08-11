@@ -4,6 +4,7 @@
     interface Props {
         autofill?: boolean;
         routes: { options: string; submit: string };
+        remember?: boolean | (() => boolean);
         onSuccess?: (response: { redirect?: string }) => void;
         onError?: (error: Error) => void;
     }

@@ -1,4 +1,5 @@
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, ref, toValue } from "vue";
+import type { MaybeRefOrGetter } from "vue";
 import { PasskeyError, toPasskeyError } from "../errors";
 import { Passkeys } from "../passkeys";
 import type {
@@ -9,6 +10,7 @@ import type {
 
 type UsePasskeyVerifyOptions = VerifyRouteOptions & {
     autofill?: boolean;
+    remember?: MaybeRefOrGetter<boolean>;
     onSuccess?: (response: VerifyResponse) => void;
     onError?: (error: PasskeyError) => void;
 };
@@ -20,6 +22,7 @@ type UsePasskeyRegisterOptions = RegisterRouteOptions & {
 
 export const usePasskeyVerify = ({
     autofill = false,
+    remember,
     routes,
     onSuccess,
     onError,
@@ -42,12 +45,15 @@ export const usePasskeyVerify = ({
         onError?.(err);
     };
 
-    const verify = async () => {
+    const verify = async (): Promise<void> => {
         isLoading.value = true;
         resetError();
 
         try {
-            const response = await Passkeys.verify({ routes });
+            const response = await Passkeys.verify({
+                routes,
+                remember: () => toValue(remember) ?? false,
+            });
             onSuccess?.(response);
         } catch (e) {
             handleError(e);
@@ -79,6 +85,7 @@ export const usePasskeyVerify = ({
         try {
             const response = await Passkeys.autofill({
                 routes,
+                remember: () => toValue(remember) ?? false,
             });
 
             if (response) {

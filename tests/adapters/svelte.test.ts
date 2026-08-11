@@ -63,11 +63,47 @@ describe("Svelte adapter", () => {
 
             await fireEvent.click(getByRole("button", { name: "Verify" }));
             await waitFor(() => {
-                expect(Passkeys.verify).toHaveBeenCalledWith({ routes });
+                expect(Passkeys.verify).toHaveBeenCalledWith({
+                    routes,
+                    remember: undefined,
+                });
             });
 
             expect(getByTestId("error").textContent).toBe("");
             expect(onSuccess).toHaveBeenCalledWith(response);
+        });
+
+        it("forwards remember to Passkeys.verify", async () => {
+            (Passkeys.verify as Mock).mockResolvedValue({});
+
+            const { getByRole } = render(TestVerify, {
+                props: { routes, remember: true },
+            });
+
+            await fireEvent.click(getByRole("button", { name: "Verify" }));
+            await waitFor(() => {
+                expect(Passkeys.verify).toHaveBeenCalledWith({
+                    routes,
+                    remember: true,
+                });
+            });
+        });
+
+        it("passes remember getters through to Passkeys.verify", async () => {
+            (Passkeys.verify as Mock).mockResolvedValue({});
+
+            const remember = () => true;
+            const { getByRole } = render(TestVerify, {
+                props: { routes, remember },
+            });
+
+            await fireEvent.click(getByRole("button", { name: "Verify" }));
+            await waitFor(() => {
+                expect(Passkeys.verify).toHaveBeenCalledWith({
+                    routes,
+                    remember,
+                });
+            });
         });
 
         it("sets error and calls onError when verify rejects", async () => {
@@ -136,7 +172,26 @@ describe("Svelte adapter", () => {
                 expect(onSuccess).toHaveBeenCalledWith(response);
             });
 
-            expect(Passkeys.autofill).toHaveBeenCalledWith({ routes });
+            expect(Passkeys.autofill).toHaveBeenCalledWith({
+                routes,
+                remember: undefined,
+            });
+        });
+
+        it("forwards configured remember to autofill", async () => {
+            (Passkeys.isAutofillSupported as Mock).mockResolvedValue(true);
+            (Passkeys.autofill as Mock).mockResolvedValue({});
+
+            render(TestVerify, {
+                props: { routes, remember: true, autofill: true },
+            });
+
+            await waitFor(() => {
+                expect(Passkeys.autofill).toHaveBeenCalledWith({
+                    routes,
+                    remember: true,
+                });
+            });
         });
 
         it("calls Passkeys.cancel on unmount", async () => {

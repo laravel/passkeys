@@ -42,6 +42,15 @@ export type RegisterRouteOptions = RouteOverrides;
 
 export type VerifyRouteOptions = RouteOverrides;
 
+/**
+ * Whether the authenticated user should be remembered.
+ */
+export type RememberOption = boolean | (() => boolean);
+
+export type VerifyOptions = VerifyRouteOptions & {
+    remember?: RememberOption;
+};
+
 export type RegisterOptions = {
     /**
      * Human-readable name for this passkey (e.g., "MacBook Pro", "Work Laptop").
@@ -76,6 +85,7 @@ export type RegistrationRequest = {
  */
 export type VerifyRequest = {
     credential: AuthenticationResponseJSON;
+    remember: boolean;
 };
 
 /**

@@ -14,10 +14,12 @@ export type { PasskeyRoutes } from "./routes";
 export type {
     PasskeysConfig,
     PasskeysFetchConfig,
+    RememberOption,
     RouteOverrides,
     RegisterOptions,
     RegisterRouteOptions,
     RegistrationResponse,
+    VerifyOptions,
     VerifyRouteOptions,
     VerifyResponse,
 } from "./types";

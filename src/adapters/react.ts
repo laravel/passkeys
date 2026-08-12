@@ -7,13 +7,14 @@ import {
 } from "react";
 import { PasskeyError, toPasskeyError } from "../errors";
 import { Passkeys } from "../passkeys";
+import { resolveRemember } from "../remember";
 import type {
     RegisterRouteOptions,
+    VerifyOptions,
     VerifyResponse,
-    VerifyRouteOptions,
 } from "../types";
 
-type UsePasskeyVerifyOptions = VerifyRouteOptions & {
+type UsePasskeyVerifyOptions = VerifyOptions & {
     autofill?: boolean;
     onSuccess?: (response: VerifyResponse) => void;
     onError?: (error: PasskeyError) => void;
@@ -34,6 +35,7 @@ const getSupportServerSnapshot = () => false;
 
 export const usePasskeyVerify = ({
     autofill = false,
+    remember,
     routes,
     onSuccess,
     onError,
@@ -51,11 +53,13 @@ export const usePasskeyVerify = ({
 
     const onSuccessRef = useRef(onSuccess);
     const onErrorRef = useRef(onError);
+    const rememberRef = useRef(remember);
     const routesRef = useRef(routes);
 
     useEffect(() => {
         onSuccessRef.current = onSuccess;
         onErrorRef.current = onError;
+        rememberRef.current = remember;
         routesRef.current = routes;
     });
 
@@ -78,6 +82,7 @@ export const usePasskeyVerify = ({
         try {
             const response = await Passkeys.verify({
                 routes: routesRef.current,
+                remember: () => resolveRemember(rememberRef.current),
             });
             onSuccessRef.current?.(response);
         } catch (e) {
@@ -109,6 +114,7 @@ export const usePasskeyVerify = ({
             try {
                 const response = await Passkeys.autofill({
                     routes: routesRef.current,
+                    remember: () => resolveRemember(rememberRef.current),
                 });
 
                 if (cancelled || !response) {

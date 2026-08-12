@@ -18,6 +18,9 @@ await Passkeys.register({ name: "MacBook Pro" });
 
 // Verify passkey
 await Passkeys.verify();
+
+// Verify and persist the login
+await Passkeys.verify({ remember: true });
 ```
 
 ## Framework Helpers
@@ -178,15 +181,15 @@ If the browser doesn't support autofill (checked via `isAutofillSupported()`) or
 
 ### Public Methods
 
-| Method                        | Description                                       |
-| ----------------------------- | ------------------------------------------------- |
-| `configure(options)`          | Configure the passkeys client                     |
-| `isSupported()`               | Check if the browser supports passkeys            |
-| `isAutofillSupported()`       | Check if the browser supports passkey autofill    |
-| `register({ name, routes? })` | Register a new passkey for the authenticated user |
-| `verify(options?)`            | Verify a passkey                                  |
-| `autofill(options?)`          | Enable passkey autofill on the current page       |
-| `cancel()`                    | Cancel any pending passkey operation              |
+| Method                             | Description                                       |
+| ---------------------------------- | ------------------------------------------------- |
+| `configure(options)`               | Configure the passkeys client                     |
+| `isSupported()`                    | Check if the browser supports passkeys            |
+| `isAutofillSupported()`            | Check if the browser supports passkey autofill    |
+| `register({ name, routes? })`      | Register a new passkey for the authenticated user |
+| `verify({ remember?, routes? })`   | Verify a passkey                                  |
+| `autofill({ remember?, routes? })` | Enable passkey autofill on the current page       |
+| `cancel()`                         | Cancel any pending passkey operation              |
 
 ### Client Configuration
 
@@ -240,7 +243,7 @@ await Passkeys.verify({
 });
 ```
 
-`register()`, `verify()`, and `autofill()` all use:
+`register()`, `verify()`, and `autofill()` all support route overrides:
 
 ```ts
 type RouteOverrides = {
@@ -249,6 +252,50 @@ type RouteOverrides = {
         submit?: string;
     };
 };
+```
+
+### Remember Me
+
+Pass `remember: true` when verifying to keep the user logged in. The flag is
+always sent with the login request and defaults to `false`:
+
+```js
+await Passkeys.verify({ remember: true });
+```
+
+`remember` can also be a function. It is called when the login request is
+sent, after the passkey ceremony completes, so it can read the current state
+of a "Remember me" checkbox. This matters for autofill because the ceremony
+starts on page load before the user picks a credential.
+
+```js
+await Passkeys.autofill({
+    remember: () => document.querySelector("#remember").checked,
+});
+```
+
+The framework adapters accept `remember` too, and apply it to both verify and
+autofill:
+
+```jsx
+// React: a value or a getter
+const [rememberMe, setRememberMe] = useState(false);
+
+usePasskeyVerify({ autofill: true, remember: rememberMe });
+```
+
+```js
+// Vue: a value, a ref, or a getter
+const rememberMe = ref(false);
+
+usePasskeyVerify({ autofill: true, remember: rememberMe });
+```
+
+```js
+// Svelte: pass a getter so $state stays live
+let rememberMe = $state(false);
+
+usePasskeyVerify({ autofill: true, remember: () => rememberMe });
 ```
 
 ### React / Vue / Svelte Route Overrides

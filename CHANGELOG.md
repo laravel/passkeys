@@ -6,15 +6,15 @@ All notable changes to this project will be documented in this file.
 
 ### What's Changed
 
-* Add Dependabot cooldown of 5 days by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/passkeys/pull/14
-* Enable Dependabot auto-merge by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/passkeys/pull/15
-* Bump actions/checkout from 6.0.2 to 6.0.3 in the github-actions group by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/passkeys/pull/22
-* Add remember-me support by [@benbjurstrom](https://github.com/benbjurstrom) in https://github.com/laravel/passkeys/pull/34
+- Add Dependabot cooldown of 5 days by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/passkeys/pull/14
+- Enable Dependabot auto-merge by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/passkeys/pull/15
+- Bump actions/checkout from 6.0.2 to 6.0.3 in the github-actions group by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/passkeys/pull/22
+- Add remember-me support by [@benbjurstrom](https://github.com/benbjurstrom) in https://github.com/laravel/passkeys/pull/34
 
 ### New Contributors
 
-* [@nunomaduro](https://github.com/nunomaduro) made their first contribution in https://github.com/laravel/passkeys/pull/14
-* [@dependabot](https://github.com/dependabot)[bot] made their first contribution in https://github.com/laravel/passkeys/pull/22
+- [@nunomaduro](https://github.com/nunomaduro) made their first contribution in https://github.com/laravel/passkeys/pull/14
+- [@dependabot](https://github.com/dependabot)[bot] made their first contribution in https://github.com/laravel/passkeys/pull/22
 
 **Full Changelog**: https://github.com/laravel/passkeys/compare/v0.2.0...v0.3.0
 

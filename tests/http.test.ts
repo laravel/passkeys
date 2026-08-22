@@ -99,6 +99,18 @@ describe("http", () => {
                 "Request failed with status 500",
             );
         });
+
+        it("throws a clear error when the request was redirected to a non-JSON page", async () => {
+            fetchMock.mockResolvedValue({
+                ok: true,
+                redirected: true,
+                json: () => Promise.resolve({}),
+            });
+
+            await expect(get("/api/test")).rejects.toThrow(
+                "The passkey request was redirected instead of returning JSON. You may already be signed in; refresh the page and try again.",
+            );
+        });
     });
 
     describe("post", () => {
@@ -249,6 +261,18 @@ describe("http", () => {
                 credentials: "same-origin",
                 body: JSON.stringify({}),
             });
+        });
+
+        it("throws a clear error when the request was redirected to a non-JSON page", async () => {
+            fetchMock.mockResolvedValue({
+                ok: true,
+                redirected: true,
+                json: () => Promise.resolve({}),
+            });
+
+            await expect(post("/api/test", {})).rejects.toThrow(
+                "The passkey request was redirected instead of returning JSON. You may already be signed in; refresh the page and try again.",
+            );
         });
     });
 });

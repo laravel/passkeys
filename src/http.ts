@@ -91,6 +91,8 @@ export const get = async <T>(url: string): Promise<T> => {
         await handleErrorResponse(response);
     }
 
+    assertNotRedirected(response);
+
     return response.json() as Promise<T>;
 };
 
@@ -121,7 +123,26 @@ export const post = async <T>(url: string, data: unknown): Promise<T> => {
         await handleErrorResponse(response);
     }
 
+    assertNotRedirected(response);
+
     return response.json() as Promise<T>;
+};
+
+/**
+ * Guard against a response that fetch silently followed to a different page.
+ *
+ * The passkey endpoints are guest only, so when the session is already
+ * authenticated the server replies with a redirect to an HTML page. fetch
+ * follows it by default, so `response.ok` is true but the body is HTML and
+ * `response.json()` would throw a cryptic "Unexpected token '<', "<!DOCTYPE ""
+ * error. Surface a clear, actionable message instead.
+ */
+const assertNotRedirected = (response: Response): void => {
+    if (response.redirected) {
+        throw new Error(
+            "The passkey request was redirected instead of returning JSON. You may already be signed in; refresh the page and try again.",
+        );
+    }
 };
 
 /**

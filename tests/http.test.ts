@@ -8,6 +8,7 @@ import {
     type Mock,
 } from "vitest";
 import { configure, get, post, resetConfig } from "../src/http";
+import { ServerError } from "../src/errors";
 
 describe("http", () => {
     let fetchMock: Mock;
@@ -99,6 +100,35 @@ describe("http", () => {
                 "Request failed with status 500",
             );
         });
+
+        it("throws a ServerError carrying the response status", async () => {
+            fetchMock.mockResolvedValue({
+                ok: false,
+                status: 404,
+                json: () => Promise.resolve({ message: "Not found" }),
+            });
+
+            const error = await get("/api/test").catch((e: unknown) => e);
+
+            expect(error).toBeInstanceOf(ServerError);
+            expect(error).toMatchObject({ status: 404, message: "Not found" });
+        });
+
+        it("keeps the status when the response is not JSON", async () => {
+            fetchMock.mockResolvedValue({
+                ok: false,
+                status: 502,
+                json: () => Promise.reject(new Error("Invalid JSON")),
+            });
+
+            const error = await get("/api/test").catch((e: unknown) => e);
+
+            expect(error).toBeInstanceOf(ServerError);
+            expect(error).toMatchObject({
+                status: 502,
+                message: "Request failed with status 502",
+            });
+        });
     });
 
     describe("post", () => {
@@ -120,6 +150,23 @@ describe("http", () => {
                 body: JSON.stringify({ name: "test" }),
             });
             expect(result).toEqual({ success: true });
+        });
+
+        it("throws a ServerError carrying the response status", async () => {
+            fetchMock.mockResolvedValue({
+                ok: false,
+                status: 419,
+                json: () =>
+                    Promise.resolve({ message: "CSRF token mismatch." }),
+            });
+
+            const error = await post("/api/test", {}).catch((e: unknown) => e);
+
+            expect(error).toBeInstanceOf(ServerError);
+            expect(error).toMatchObject({
+                status: 419,
+                message: "CSRF token mismatch.",
+            });
         });
 
         it("uses configured fetch options when supplied", async () => {

@@ -1,3 +1,4 @@
+import { ServerError } from "./errors";
 import type { PasskeysConfig } from "./types";
 
 type CsrfToken = {
@@ -145,5 +146,5 @@ const handleErrorResponse = async (response: Response): Promise<never> => {
         // Response wasn't JSON, use default message
     }
 
-    throw new Error(message);
+    throw new ServerError(message, response.status);
 };

@@ -8,7 +8,7 @@ import {
     type Mock,
 } from "vitest";
 import { Passkeys } from "../src/passkeys";
-import { NotSupportedError } from "../src/errors";
+import { NotSupportedError, PasskeyError, ServerError } from "../src/errors";
 import { resetConfig } from "../src/http";
 import {
     browserSupportsWebAuthn,
@@ -286,6 +286,39 @@ describe("Passkeys", () => {
                 optionsJSON: mockOptionsResponse.options,
             });
             expect(result).toEqual(mockVerifyResponse);
+        });
+
+        it("rejects with the status when the server refuses the passkey", async () => {
+            fetchMock
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve(mockOptionsResponse),
+                })
+                .mockResolvedValueOnce({
+                    ok: false,
+                    status: 422,
+                    json: () =>
+                        Promise.resolve({ message: "Passkey not recognized." }),
+                });
+            (startAuthentication as Mock).mockResolvedValue(mockCredential);
+
+            const error = await Passkeys.verify().catch((e: unknown) => e);
+
+            expect(error).toBeInstanceOf(ServerError);
+            expect(error).toMatchObject({
+                status: 422,
+                message: "Passkey not recognized.",
+            });
+        });
+
+        it("keeps a failed request as the cause", async () => {
+            const failure = new TypeError("Failed to fetch");
+            fetchMock.mockRejectedValue(failure);
+
+            const error = await Passkeys.verify().catch((e: unknown) => e);
+
+            expect(error).toBeInstanceOf(PasskeyError);
+            expect((error as PasskeyError).cause).toBe(failure);
         });
 
         it("includes remember when explicitly provided", async () => {

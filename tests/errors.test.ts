@@ -63,6 +63,16 @@ describe("toPasskeyError", () => {
         expect(result.message).toBe("Something broke");
     });
 
+    it("keeps the original error as the cause of unknown errors", () => {
+        const error = new TypeError("Failed to fetch");
+
+        expect(toPasskeyError(error).cause).toBe(error);
+    });
+
+    it("keeps non-Error values as the cause", () => {
+        expect(toPasskeyError("string").cause).toBe("string");
+    });
+
     it("handles non-Error values", () => {
         expect(toPasskeyError("string")).toBeInstanceOf(PasskeyError);
         expect(toPasskeyError(null)).toBeInstanceOf(PasskeyError);

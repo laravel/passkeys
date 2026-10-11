@@ -2,9 +2,18 @@
  * Base error class for passkey operations.
  */
 export class PasskeyError extends Error {
-    constructor(message: string) {
+    /**
+     * The original error this one was converted from, if any.
+     */
+    cause?: unknown;
+
+    constructor(message: string, options?: { cause?: unknown }) {
         super(message);
         this.name = "PasskeyError";
+
+        if (options && "cause" in options) {
+            this.cause = options.cause;
+        }
     }
 }
 
@@ -39,6 +48,19 @@ export class PasskeyExistsError extends PasskeyError {
 }
 
 /**
+ * Thrown when the server answers a passkey request with an error status.
+ */
+export class ServerError extends PasskeyError {
+    readonly status: number;
+
+    constructor(message: string, status: number) {
+        super(message);
+        this.name = "ServerError";
+        this.status = status;
+    }
+}
+
+/**
  * Thrown when passkeys are used from an invalid domain.
  */
 export class InvalidDomainError extends PasskeyError {
@@ -61,7 +83,7 @@ export const toPasskeyError = (error: unknown): PasskeyError => {
     }
 
     if (!(error instanceof Error)) {
-        return new PasskeyError("An unknown error occurred.");
+        return new PasskeyError("An unknown error occurred.", { cause: error });
     }
 
     if (isInvalidDomainError(error)) {
@@ -76,7 +98,7 @@ export const toPasskeyError = (error: unknown): PasskeyError => {
         case "NotSupportedError":
             return new NotSupportedError();
         default:
-            return new PasskeyError(error.message);
+            return new PasskeyError(error.message, { cause: error });
     }
 };
 

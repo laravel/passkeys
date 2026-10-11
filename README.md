@@ -335,13 +335,26 @@ usePasskeyRegister({
 
 All ceremony failures are converted to `PasskeyError` subclasses so you can branch on error type:
 
-| Class                | Thrown when                                                  |
-| -------------------- | ------------------------------------------------------------ |
-| `NotSupportedError`  | The browser does not support WebAuthn                        |
-| `UserCancelledError` | The user dismissed the native prompt                         |
-| `PasskeyExistsError` | A passkey for this account/device is already registered      |
-| `InvalidDomainError` | Passkeys are used from an invalid domain                     |
-| `PasskeyError`       | Base class; used for server errors and any unmapped failures |
+| Class                | Thrown when                                                |
+| -------------------- | ---------------------------------------------------------- |
+| `NotSupportedError`  | The browser does not support WebAuthn                      |
+| `UserCancelledError` | The user dismissed the native prompt                       |
+| `PasskeyExistsError` | A passkey for this account/device is already registered    |
+| `InvalidDomainError` | Passkeys are used from an invalid domain                   |
+| `ServerError`        | The server answered with an error status, kept in `status` |
+| `PasskeyError`       | Base class; used for any unmapped failures                 |
+
+Any other failure keeps the error it was converted from as `cause`, so a request that never reached the server (a `TypeError` from `fetch`) can be told apart from a message the server sent:
+
+```js
+import { ServerError } from "@laravel/passkeys";
+
+if (error instanceof ServerError && error.status === 419) {
+    // The page's CSRF token has expired, so ask the user to reload it.
+} else if (error.cause instanceof TypeError) {
+    // The request never reached the server, so ask the user to check their connection.
+}
+```
 
 `Passkeys.register()` and `Passkeys.verify()` throw these directly. The framework adapters expose them two ways: the `onError` callback receives the typed instance, and each hook returns an `errorInstance` field (alongside the string `error`) so you can branch from markup:
 

@@ -73,7 +73,6 @@ export function usePasskeyVerify({
                 return;
             }
 
-            isLoading = true;
             resetError();
 
             try {
@@ -84,8 +83,6 @@ export function usePasskeyVerify({
                 }
             } catch (e) {
                 handleError(e);
-            } finally {
-                isLoading = false;
             }
         })();
 

@@ -194,6 +194,51 @@ describe("Svelte adapter", () => {
             });
         });
 
+        it("does not report loading while autofill waits for the user", async () => {
+            (Passkeys.isAutofillSupported as Mock).mockResolvedValue(true);
+            (Passkeys.autofill as Mock).mockReturnValue(new Promise(() => {}));
+
+            const { getByTestId } = render(TestVerify, {
+                props: { routes, autofill: true },
+            });
+
+            await waitFor(() => {
+                expect(Passkeys.autofill).toHaveBeenCalled();
+            });
+
+            expect(getByTestId("loading").textContent).toBe("false");
+        });
+
+        it("stays loading when verify aborts a pending autofill", async () => {
+            (Passkeys.isAutofillSupported as Mock).mockResolvedValue(true);
+
+            let abortAutofill: (value: undefined) => void = () => {};
+            (Passkeys.autofill as Mock).mockReturnValue(
+                new Promise((resolve) => {
+                    abortAutofill = resolve;
+                }),
+            );
+            (Passkeys.verify as Mock).mockImplementation(() => {
+                abortAutofill(undefined);
+
+                return new Promise(() => {});
+            });
+
+            const { getByRole, getByTestId } = render(TestVerify, {
+                props: { routes, autofill: true },
+            });
+
+            await waitFor(() => {
+                expect(Passkeys.autofill).toHaveBeenCalled();
+            });
+
+            await fireEvent.click(getByRole("button", { name: "Verify" }));
+
+            await waitFor(() => {
+                expect(getByTestId("loading").textContent).toBe("true");
+            });
+        });
+
         it("calls Passkeys.cancel on unmount", async () => {
             const { unmount } = render(TestVerify, {
                 props: { routes, autofill: true },

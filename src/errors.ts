@@ -85,11 +85,16 @@ export class UnexpectedResponseError extends PasskeyError {
     readonly url: string;
     readonly redirected: boolean;
 
-    constructor(url: string, redirected: boolean) {
+    constructor(
+        url: string,
+        redirected: boolean,
+        options?: PasskeyErrorOptions,
+    ) {
         super(
             redirected
                 ? `The passkey request was redirected to ${url} instead of returning JSON.`
                 : `The passkey request to ${url} did not return JSON.`,
+            options,
         );
         this.name = "UnexpectedResponseError";
         this.url = url;

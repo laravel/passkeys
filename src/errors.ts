@@ -53,6 +53,26 @@ export class InvalidDomainError extends PasskeyError {
 }
 
 /**
+ * Thrown when the server responds with something other than JSON, such as a
+ * guest-only route redirecting an already authenticated user.
+ */
+export class UnexpectedResponseError extends PasskeyError {
+    readonly url: string;
+    readonly redirected: boolean;
+
+    constructor(url: string, redirected: boolean) {
+        super(
+            redirected
+                ? `The passkey request was redirected to ${url} instead of returning JSON.`
+                : `The passkey request to ${url} did not return JSON.`,
+        );
+        this.name = "UnexpectedResponseError";
+        this.url = url;
+        this.redirected = redirected;
+    }
+}
+
+/**
  * Convert WebAuthn errors to friendly passkey errors.
  */
 export const toPasskeyError = (error: unknown): PasskeyError => {

@@ -8,6 +8,7 @@ import {
     type Mock,
 } from "vitest";
 import { configure, get, post, resetConfig } from "../src/http";
+import { UnexpectedResponseError } from "../src/errors";
 
 describe("http", () => {
     let fetchMock: Mock;
@@ -100,16 +101,55 @@ describe("http", () => {
             );
         });
 
-        it("throws a clear error when the request was redirected to a non-JSON page", async () => {
+        it("throws UnexpectedResponseError when redirected to a non-JSON page", async () => {
             fetchMock.mockResolvedValue({
                 ok: true,
                 redirected: true,
-                json: () => Promise.resolve({}),
+                url: "https://app.test/dashboard",
+                json: () =>
+                    Promise.reject(new SyntaxError("Unexpected token '<'")),
             });
 
-            await expect(get("/api/test")).rejects.toThrow(
-                "The passkey request was redirected instead of returning JSON. You may already be signed in; refresh the page and try again.",
-            );
+            const error = await get("/api/test").catch((e: unknown) => e);
+
+            expect(error).toBeInstanceOf(UnexpectedResponseError);
+            expect(error).toMatchObject({
+                url: "https://app.test/dashboard",
+                redirected: true,
+                message:
+                    "The passkey request was redirected to https://app.test/dashboard instead of returning JSON.",
+            });
+        });
+
+        it("throws UnexpectedResponseError when a 200 response is not JSON", async () => {
+            fetchMock.mockResolvedValue({
+                ok: true,
+                redirected: false,
+                url: "https://app.test/api/test",
+                json: () =>
+                    Promise.reject(new SyntaxError("Unexpected token '<'")),
+            });
+
+            const error = await get("/api/test").catch((e: unknown) => e);
+
+            expect(error).toBeInstanceOf(UnexpectedResponseError);
+            expect(error).toMatchObject({
+                url: "https://app.test/api/test",
+                redirected: false,
+                message:
+                    "The passkey request to https://app.test/api/test did not return JSON.",
+            });
+        });
+
+        it("returns JSON from a redirected response", async () => {
+            fetchMock.mockResolvedValue({
+                ok: true,
+                redirected: true,
+                url: "https://app.test/api/test/",
+                json: () => Promise.resolve({ data: "test" }),
+            });
+
+            await expect(get("/api/test")).resolves.toEqual({ data: "test" });
         });
     });
 
@@ -263,16 +303,57 @@ describe("http", () => {
             });
         });
 
-        it("throws a clear error when the request was redirected to a non-JSON page", async () => {
+        it("throws UnexpectedResponseError when redirected to a non-JSON page", async () => {
             fetchMock.mockResolvedValue({
                 ok: true,
                 redirected: true,
-                json: () => Promise.resolve({}),
+                url: "https://app.test/dashboard",
+                json: () =>
+                    Promise.reject(new SyntaxError("Unexpected token '<'")),
             });
 
-            await expect(post("/api/test", {})).rejects.toThrow(
-                "The passkey request was redirected instead of returning JSON. You may already be signed in; refresh the page and try again.",
-            );
+            const error = await post("/api/test", {}).catch((e: unknown) => e);
+
+            expect(error).toBeInstanceOf(UnexpectedResponseError);
+            expect(error).toMatchObject({
+                url: "https://app.test/dashboard",
+                redirected: true,
+                message:
+                    "The passkey request was redirected to https://app.test/dashboard instead of returning JSON.",
+            });
+        });
+
+        it("throws UnexpectedResponseError when a 200 response is not JSON", async () => {
+            fetchMock.mockResolvedValue({
+                ok: true,
+                redirected: false,
+                url: "https://app.test/api/test",
+                json: () =>
+                    Promise.reject(new SyntaxError("Unexpected token '<'")),
+            });
+
+            const error = await post("/api/test", {}).catch((e: unknown) => e);
+
+            expect(error).toBeInstanceOf(UnexpectedResponseError);
+            expect(error).toMatchObject({
+                url: "https://app.test/api/test",
+                redirected: false,
+                message:
+                    "The passkey request to https://app.test/api/test did not return JSON.",
+            });
+        });
+
+        it("returns JSON from a redirected response", async () => {
+            fetchMock.mockResolvedValue({
+                ok: true,
+                redirected: true,
+                url: "https://app.test/api/test/",
+                json: () => Promise.resolve({ data: "test" }),
+            });
+
+            await expect(post("/api/test", {})).resolves.toEqual({
+                data: "test",
+            });
         });
     });
 });

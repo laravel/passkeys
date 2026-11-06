@@ -288,13 +288,14 @@ usePasskeyRegister({
 
 All ceremony failures are converted to `PasskeyError` subclasses so you can branch on error type:
 
-| Class                | Thrown when                                                  |
-| -------------------- | ------------------------------------------------------------ |
-| `NotSupportedError`  | The browser does not support WebAuthn                        |
-| `UserCancelledError` | The user dismissed the native prompt                         |
-| `PasskeyExistsError` | A passkey for this account/device is already registered      |
-| `InvalidDomainError` | Passkeys are used from an invalid domain                     |
-| `PasskeyError`       | Base class; used for server errors and any unmapped failures |
+| Class                     | Thrown when                                                                                                                                                         |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NotSupportedError`       | The browser does not support WebAuthn                                                                                                                               |
+| `UserCancelledError`      | The user dismissed the native prompt                                                                                                                                |
+| `PasskeyExistsError`      | A passkey for this account/device is already registered                                                                                                             |
+| `InvalidDomainError`      | Passkeys are used from an invalid domain                                                                                                                            |
+| `UnexpectedResponseError` | The server returned something other than JSON, such as a redirect from a guest-only route when the user is already signed in. Has `url` and `redirected` properties |
+| `PasskeyError`            | Base class; used for server errors and any unmapped failures                                                                                                        |
 
 `Passkeys.register()` and `Passkeys.verify()` throw these directly. The framework adapters expose them two ways: the `onError` callback receives the typed instance, and each hook returns an `errorInstance` field (alongside the string `error`) so you can branch from markup:
 
@@ -311,6 +312,20 @@ const { register, error, errorInstance } = usePasskeyRegister();
     ) : error ? (
         <p className="error">{error}</p>
     ) : null;
+}
+```
+
+If a user who is already signed in tries to log in again, for example from a second tab, Laravel redirects the guest-only login routes. Send them to the redirect target:
+
+```js
+import { Passkeys, UnexpectedResponseError } from "@laravel/passkeys";
+
+try {
+    await Passkeys.verify();
+} catch (error) {
+    if (error instanceof UnexpectedResponseError && error.redirected) {
+        window.location.href = error.url;
+    }
 }
 ```
 

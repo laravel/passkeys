@@ -6,6 +6,7 @@ export {
     UserCancelledError,
     PasskeyExistsError,
     InvalidDomainError,
+    UnexpectedResponseError,
 } from "./errors";
 
 export { defaultRoutes } from "./routes";

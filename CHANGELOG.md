@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.4.1 - 2026-11-06
+
+### What's Changed
+
+* Bump fast-uri from 3.1.0 to 3.1.7 by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/passkeys/pull/37
+* Bump undici from 7.24.4 to 7.29.0 by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/passkeys/pull/32
+* Bump [@humanfs](https://github.com/humanfs)/node from 0.16.7 to 0.16.8 by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/passkeys/pull/38
+* Bump happy-dom from 15.11.7 to 21.0.4 by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/passkeys/pull/47
+* npm audit fixes by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/passkeys/pull/49
+* Bump the github-actions group across 1 directory with 3 updates by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/passkeys/pull/29
+* Bump vite, vitest and [@sveltejs](https://github.com/sveltejs)/vite-plugin-svelte by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/passkeys/pull/24
+* Keep isLoading false while autofill waits for a passkey by [@altin7m](https://github.com/altin7m) in https://github.com/laravel/passkeys/pull/42
+* Keep the response status and original error on passkey errors by [@muqg](https://github.com/muqg) in https://github.com/laravel/passkeys/pull/41
+* Throw a clear error when a passkey request is redirected instead of returning JSON by [@Fuitad](https://github.com/Fuitad) in https://github.com/laravel/passkeys/pull/23
+
+### New Contributors
+
+* [@altin7m](https://github.com/altin7m) made their first contribution in https://github.com/laravel/passkeys/pull/42
+* [@muqg](https://github.com/muqg) made their first contribution in https://github.com/laravel/passkeys/pull/41
+* [@Fuitad](https://github.com/Fuitad) made their first contribution in https://github.com/laravel/passkeys/pull/23
+
+**Full Changelog**: https://github.com/laravel/passkeys/compare/v0.4.0...v0.4.1
+
 ## v0.4.0 - 2026-08-12
 
 ### What's Changed

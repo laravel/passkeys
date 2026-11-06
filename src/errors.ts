@@ -1,3 +1,5 @@
+type PasskeyErrorOptions = { cause?: unknown };
+
 /**
  * Base error class for passkey operations.
  */
@@ -7,7 +9,7 @@ export class PasskeyError extends Error {
      */
     cause?: unknown;
 
-    constructor(message: string, options?: { cause?: unknown }) {
+    constructor(message: string, options?: PasskeyErrorOptions) {
         super(message);
         this.name = "PasskeyError";
 
@@ -21,8 +23,8 @@ export class PasskeyError extends Error {
  * Thrown when the browser doesn't support WebAuthn.
  */
 export class NotSupportedError extends PasskeyError {
-    constructor() {
-        super("Passkeys are not supported in this browser.");
+    constructor(options?: PasskeyErrorOptions) {
+        super("Passkeys are not supported in this browser.", options);
         this.name = "NotSupportedError";
     }
 }
@@ -31,8 +33,8 @@ export class NotSupportedError extends PasskeyError {
  * Thrown when the user cancels the passkey operation.
  */
 export class UserCancelledError extends PasskeyError {
-    constructor() {
-        super("The passkey operation was cancelled.");
+    constructor(options?: PasskeyErrorOptions) {
+        super("The passkey operation was cancelled.", options);
         this.name = "UserCancelledError";
     }
 }
@@ -41,8 +43,8 @@ export class UserCancelledError extends PasskeyError {
  * Thrown when the passkey already exists (during registration).
  */
 export class PasskeyExistsError extends PasskeyError {
-    constructor() {
-        super("This device is already registered as a passkey.");
+    constructor(options?: PasskeyErrorOptions) {
+        super("This device is already registered as a passkey.", options);
         this.name = "PasskeyExistsError";
     }
 }
@@ -64,11 +66,12 @@ export class ServerError extends PasskeyError {
  * Thrown when passkeys are used from an invalid domain.
  */
 export class InvalidDomainError extends PasskeyError {
-    constructor(domain?: string) {
+    constructor(domain?: string, options?: PasskeyErrorOptions) {
         const subject = domain ?? "this domain";
 
         super(
             `Passkeys can't be used on ${subject}. For local development, use localhost.`,
+            options,
         );
         this.name = "InvalidDomainError";
     }
@@ -87,16 +90,16 @@ export const toPasskeyError = (error: unknown): PasskeyError => {
     }
 
     if (isInvalidDomainError(error)) {
-        return new InvalidDomainError(currentHostname());
+        return new InvalidDomainError(currentHostname(), { cause: error });
     }
 
     switch (error.name) {
         case "NotAllowedError":
-            return new UserCancelledError();
+            return new UserCancelledError({ cause: error });
         case "InvalidStateError":
-            return new PasskeyExistsError();
+            return new PasskeyExistsError({ cause: error });
         case "NotSupportedError":
-            return new NotSupportedError();
+            return new NotSupportedError({ cause: error });
         default:
             return new PasskeyError(error.message, { cause: error });
     }

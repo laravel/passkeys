@@ -19,21 +19,30 @@ describe("toPasskeyError", () => {
         const error = new Error();
         error.name = "NotAllowedError";
 
-        expect(toPasskeyError(error)).toBeInstanceOf(UserCancelledError);
+        const result = toPasskeyError(error);
+
+        expect(result).toBeInstanceOf(UserCancelledError);
+        expect(result.cause).toBe(error);
     });
 
     it("converts InvalidStateError to PasskeyExistsError", () => {
         const error = new Error();
         error.name = "InvalidStateError";
 
-        expect(toPasskeyError(error)).toBeInstanceOf(PasskeyExistsError);
+        const result = toPasskeyError(error);
+
+        expect(result).toBeInstanceOf(PasskeyExistsError);
+        expect(result.cause).toBe(error);
     });
 
     it("converts NotSupportedError to NotSupportedError", () => {
         const error = new Error();
         error.name = "NotSupportedError";
 
-        expect(toPasskeyError(error)).toBeInstanceOf(NotSupportedError);
+        const result = toPasskeyError(error);
+
+        expect(result).toBeInstanceOf(NotSupportedError);
+        expect(result.cause).toBe(error);
     });
 
     it("converts SimpleWebAuthn invalid domain errors by code", () => {
@@ -46,6 +55,7 @@ describe("toPasskeyError", () => {
             const result = toPasskeyError(error);
 
             expect(result).toBeInstanceOf(InvalidDomainError);
+            expect(result.cause).toBe(error);
             expect(result.message).toBe(
                 "Passkeys can't be used on 127.0.0.1. For local development, use localhost.",
             );

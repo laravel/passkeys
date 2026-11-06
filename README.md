@@ -344,7 +344,7 @@ All ceremony failures are converted to `PasskeyError` subclasses so you can bran
 | `ServerError`        | The server answered with an error status, kept in `status` |
 | `PasskeyError`       | Base class; used for any unmapped failures                 |
 
-Any other failure keeps the error it was converted from as `cause`, so a request that never reached the server (a `TypeError` from `fetch`) can be told apart from a message the server sent:
+Every other error keeps the error it was converted from as `cause`. A `TypeError` cause usually means `fetch` failed and the request never reached the server, and the `cause` of a `UserCancelledError` tells a dismissed prompt apart from one that timed out:
 
 ```js
 import { ServerError } from "@laravel/passkeys";
@@ -352,7 +352,7 @@ import { ServerError } from "@laravel/passkeys";
 if (error instanceof ServerError && error.status === 419) {
     // The page's CSRF token has expired, so ask the user to reload it.
 } else if (error.cause instanceof TypeError) {
-    // The request never reached the server, so ask the user to check their connection.
+    // The request most likely never reached the server, so ask the user to check their connection.
 }
 ```
 

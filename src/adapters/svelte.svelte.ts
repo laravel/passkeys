@@ -3,11 +3,11 @@ import { PasskeyError, toPasskeyError } from "../errors";
 import { Passkeys } from "../passkeys";
 import type {
     RegisterRouteOptions,
+    VerifyOptions,
     VerifyResponse,
-    VerifyRouteOptions,
 } from "../types";
 
-type UsePasskeyVerifyOptions = VerifyRouteOptions & {
+type UsePasskeyVerifyOptions = VerifyOptions & {
     autofill?: boolean;
     onSuccess?: (response: VerifyResponse) => void;
     onError?: (error: PasskeyError) => void;
@@ -20,6 +20,7 @@ type UsePasskeyRegisterOptions = RegisterRouteOptions & {
 
 export function usePasskeyVerify({
     autofill = false,
+    remember,
     routes,
     onSuccess,
     onError,
@@ -42,12 +43,12 @@ export function usePasskeyVerify({
         onError?.(err);
     };
 
-    const verify = async () => {
+    const verify = async (): Promise<void> => {
         isLoading = true;
         resetError();
 
         try {
-            const response = await Passkeys.verify({ routes });
+            const response = await Passkeys.verify({ routes, remember });
             onSuccess?.(response);
         } catch (e) {
             handleError(e);
@@ -76,9 +77,7 @@ export function usePasskeyVerify({
             resetError();
 
             try {
-                const response = await Passkeys.autofill({
-                    routes,
-                });
+                const response = await Passkeys.autofill({ routes, remember });
 
                 if (response) {
                     onSuccess?.(response);

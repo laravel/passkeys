@@ -288,6 +288,92 @@ describe("Passkeys", () => {
             expect(result).toEqual(mockVerifyResponse);
         });
 
+        it("includes remember when explicitly provided", async () => {
+            const mockResponse = { redirect: "/dashboard" };
+            fetchMock
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve(mockOptionsResponse),
+                })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve(mockResponse),
+                });
+            (startAuthentication as Mock).mockResolvedValue(mockCredential);
+
+            await Passkeys.verify({ remember: true });
+
+            expect(fetchMock).toHaveBeenNthCalledWith(
+                2,
+                "/passkeys/login",
+                expect.objectContaining({
+                    body: JSON.stringify({
+                        credential: mockCredential,
+                        remember: true,
+                    }),
+                }),
+            );
+        });
+
+        it("sends remember as false when it is not provided", async () => {
+            fetchMock
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve(mockOptionsResponse),
+                })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve(mockVerifyResponse),
+                });
+            (startAuthentication as Mock).mockResolvedValue(mockCredential);
+
+            await Passkeys.verify();
+
+            expect(fetchMock).toHaveBeenNthCalledWith(
+                2,
+                "/passkeys/login",
+                expect.objectContaining({
+                    body: JSON.stringify({
+                        credential: mockCredential,
+                        remember: false,
+                    }),
+                }),
+            );
+        });
+
+        it("resolves remember getters when the login request is sent", async () => {
+            fetchMock
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve(mockOptionsResponse),
+                })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve(mockVerifyResponse),
+                });
+
+            // Flip the value during the ceremony to prove the getter is read
+            // at submit time rather than when verify() was called.
+            let remembered = false;
+            (startAuthentication as Mock).mockImplementation(async () => {
+                remembered = true;
+                return mockCredential;
+            });
+
+            await Passkeys.verify({ remember: () => remembered });
+
+            expect(fetchMock).toHaveBeenNthCalledWith(
+                2,
+                "/passkeys/login",
+                expect.objectContaining({
+                    body: JSON.stringify({
+                        credential: mockCredential,
+                        remember: true,
+                    }),
+                }),
+            );
+        });
+
         it("allows explicit route overrides per verify call", async () => {
             fetchMock
                 .mockResolvedValueOnce({
@@ -434,6 +520,33 @@ describe("Passkeys", () => {
                 useBrowserAutofill: true,
             });
             expect(result).toEqual(mockResponse);
+        });
+
+        it("includes remember in the autofill request when explicitly provided", async () => {
+            const mockResponse = { redirect: "/dashboard" };
+            fetchMock
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve(mockOptionsResponse),
+                })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve(mockResponse),
+                });
+            (startAuthentication as Mock).mockResolvedValue(mockCredential);
+
+            await Passkeys.autofill({ remember: true });
+
+            expect(fetchMock).toHaveBeenNthCalledWith(
+                2,
+                "/passkeys/login",
+                expect.objectContaining({
+                    body: JSON.stringify({
+                        credential: mockCredential,
+                        remember: true,
+                    }),
+                }),
+            );
         });
 
         it("allows explicit route overrides per autofill call", async () => {

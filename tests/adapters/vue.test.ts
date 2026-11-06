@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
-import { defineComponent, h, createSSRApp } from "vue";
+import { defineComponent, h, createSSRApp, ref } from "vue";
+import type { MaybeRefOrGetter } from "vue";
 import { renderToString } from "@vue/server-renderer";
 import { Passkeys } from "../../src/passkeys";
 import { PasskeyError, PasskeyExistsError } from "../../src/errors";
@@ -19,7 +20,10 @@ vi.mock("../../src/passkeys", () => ({
 
 const routes = { options: "/opts", submit: "/submit" };
 
-const createVerifyWrapper = (autofill = false) =>
+const createVerifyWrapper = (
+    autofill = false,
+    remember?: MaybeRefOrGetter<boolean>,
+) =>
     defineComponent({
         setup() {
             const onSuccess = vi.fn();
@@ -29,6 +33,7 @@ const createVerifyWrapper = (autofill = false) =>
                 onSuccess,
                 onError,
                 autofill,
+                remember,
             });
             return { passkey, onSuccess, onError };
         },
@@ -136,9 +141,29 @@ describe("Vue adapter", () => {
             await wrapper.find("[data-verify]").trigger("click");
             await flushPromises();
 
-            expect(Passkeys.verify).toHaveBeenCalledWith({ routes });
+            expect(Passkeys.verify).toHaveBeenCalledWith({
+                routes,
+                remember: expect.any(Function),
+            });
             expect(wrapper.find("[data-error]").text()).toBe("");
             expect(vm.onSuccess).toHaveBeenCalledWith(response);
+        });
+
+        it("resolves remember from a ref when verifying", async () => {
+            (Passkeys.verify as Mock).mockResolvedValue({});
+
+            const rememberMe = ref(false);
+            const wrapper = mount(createVerifyWrapper(false, rememberMe));
+            await flushPromises();
+
+            rememberMe.value = true;
+            await wrapper.find("[data-verify]").trigger("click");
+            await flushPromises();
+
+            const options = (Passkeys.verify as Mock).mock.calls[0][0] as {
+                remember: () => boolean;
+            };
+            expect(options.remember()).toBe(true);
         });
 
         it("sets error and calls onError when verify rejects", async () => {
@@ -206,7 +231,23 @@ describe("Vue adapter", () => {
                 onSuccess: ReturnType<typeof vi.fn>;
             };
             expect(vm.onSuccess).toHaveBeenCalledWith(response);
-            expect(Passkeys.autofill).toHaveBeenCalledWith({ routes });
+            expect(Passkeys.autofill).toHaveBeenCalledWith({
+                routes,
+                remember: expect.any(Function),
+            });
+        });
+
+        it("forwards configured remember to autofill", async () => {
+            (Passkeys.isAutofillSupported as Mock).mockResolvedValue(true);
+            (Passkeys.autofill as Mock).mockResolvedValue({});
+
+            mount(createVerifyWrapper(true, () => true));
+            await flushPromises();
+
+            const options = (Passkeys.autofill as Mock).mock.calls[0][0] as {
+                remember: () => boolean;
+            };
+            expect(options.remember()).toBe(true);
         });
 
         it("calls Passkeys.cancel on unmount", async () => {

@@ -7,6 +7,7 @@ export {
     PasskeyExistsError,
     InvalidDomainError,
     UnexpectedResponseError,
+    ServerError,
 } from "./errors";
 
 export { defaultRoutes } from "./routes";
@@ -15,10 +16,12 @@ export type { PasskeyRoutes } from "./routes";
 export type {
     PasskeysConfig,
     PasskeysFetchConfig,
+    RememberOption,
     RouteOverrides,
     RegisterOptions,
     RegisterRouteOptions,
     RegistrationResponse,
+    VerifyOptions,
     VerifyRouteOptions,
     VerifyResponse,
 } from "./types";

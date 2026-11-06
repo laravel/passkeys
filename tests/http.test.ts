@@ -8,7 +8,7 @@ import {
     type Mock,
 } from "vitest";
 import { configure, get, post, resetConfig } from "../src/http";
-import { UnexpectedResponseError } from "../src/errors";
+import { ServerError, UnexpectedResponseError } from "../src/errors";
 
 describe("http", () => {
     let fetchMock: Mock;
@@ -101,6 +101,35 @@ describe("http", () => {
             );
         });
 
+        it("throws a ServerError carrying the response status", async () => {
+            fetchMock.mockResolvedValue({
+                ok: false,
+                status: 404,
+                json: () => Promise.resolve({ message: "Not found" }),
+            });
+
+            const error = await get("/api/test").catch((e: unknown) => e);
+
+            expect(error).toBeInstanceOf(ServerError);
+            expect(error).toMatchObject({ status: 404, message: "Not found" });
+        });
+
+        it("keeps the status when the response is not JSON", async () => {
+            fetchMock.mockResolvedValue({
+                ok: false,
+                status: 502,
+                json: () => Promise.reject(new Error("Invalid JSON")),
+            });
+
+            const error = await get("/api/test").catch((e: unknown) => e);
+
+            expect(error).toBeInstanceOf(ServerError);
+            expect(error).toMatchObject({
+                status: 502,
+                message: "Request failed with status 502",
+            });
+        });
+
         it("throws UnexpectedResponseError when redirected to a non-JSON page", async () => {
             fetchMock.mockResolvedValue({
                 ok: true,
@@ -116,6 +145,7 @@ describe("http", () => {
             expect(error).toMatchObject({
                 url: "https://app.test/dashboard",
                 redirected: true,
+                cause: expect.any(SyntaxError),
                 message:
                     "The passkey request was redirected to https://app.test/dashboard instead of returning JSON.",
             });
@@ -136,6 +166,7 @@ describe("http", () => {
             expect(error).toMatchObject({
                 url: "https://app.test/api/test",
                 redirected: false,
+                cause: expect.any(SyntaxError),
                 message:
                     "The passkey request to https://app.test/api/test did not return JSON.",
             });
@@ -172,6 +203,23 @@ describe("http", () => {
                 body: JSON.stringify({ name: "test" }),
             });
             expect(result).toEqual({ success: true });
+        });
+
+        it("throws a ServerError carrying the response status", async () => {
+            fetchMock.mockResolvedValue({
+                ok: false,
+                status: 419,
+                json: () =>
+                    Promise.resolve({ message: "CSRF token mismatch." }),
+            });
+
+            const error = await post("/api/test", {}).catch((e: unknown) => e);
+
+            expect(error).toBeInstanceOf(ServerError);
+            expect(error).toMatchObject({
+                status: 419,
+                message: "CSRF token mismatch.",
+            });
         });
 
         it("uses configured fetch options when supplied", async () => {
@@ -318,6 +366,7 @@ describe("http", () => {
             expect(error).toMatchObject({
                 url: "https://app.test/dashboard",
                 redirected: true,
+                cause: expect.any(SyntaxError),
                 message:
                     "The passkey request was redirected to https://app.test/dashboard instead of returning JSON.",
             });
@@ -338,6 +387,7 @@ describe("http", () => {
             expect(error).toMatchObject({
                 url: "https://app.test/api/test",
                 redirected: false,
+                cause: expect.any(SyntaxError),
                 message:
                     "The passkey request to https://app.test/api/test did not return JSON.",
             });

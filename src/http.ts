@@ -1,4 +1,4 @@
-import { UnexpectedResponseError } from "./errors";
+import { ServerError, UnexpectedResponseError } from "./errors";
 import type { PasskeysConfig } from "./types";
 
 type CsrfToken = {
@@ -132,8 +132,10 @@ export const post = async <T>(url: string, data: unknown): Promise<T> => {
 const parseJson = async <T>(response: Response): Promise<T> => {
     try {
         return (await response.json()) as T;
-    } catch {
-        throw new UnexpectedResponseError(response.url, response.redirected);
+    } catch (error) {
+        throw new UnexpectedResponseError(response.url, response.redirected, {
+            cause: error,
+        });
     }
 };
 
@@ -158,5 +160,5 @@ const handleErrorResponse = async (response: Response): Promise<never> => {
         // Response wasn't JSON, use default message
     }
 
-    throw new Error(message);
+    throw new ServerError(message, response.status);
 };

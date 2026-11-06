@@ -51,9 +51,9 @@ describe("React adapter", () => {
             (Passkeys.isSupported as Mock).mockReturnValue(true);
 
             function Probe() {
-                const { isSupported } = usePasskeyVerify({ routes });
+                const { isSupported, verify } = usePasskeyVerify({ routes });
 
-                return <span>{String(isSupported)}</span>;
+                return <button onClick={verify}>{String(isSupported)}</button>;
             }
 
             const html = renderToString(<Probe />);
@@ -79,9 +79,33 @@ describe("React adapter", () => {
                 expect(result.current.isLoading).toBe(false);
             });
 
-            expect(Passkeys.verify).toHaveBeenCalledWith({ routes });
+            expect(Passkeys.verify).toHaveBeenCalledWith({
+                routes,
+                remember: expect.any(Function),
+            });
             expect(result.current.error).toBeNull();
             expect(onSuccess).toHaveBeenCalledWith(response);
+        });
+
+        it("resolves remember from the latest render when verifying", async () => {
+            (Passkeys.verify as Mock).mockResolvedValue({});
+
+            const { result, rerender } = renderHook(
+                ({ remember }: { remember: boolean }) =>
+                    usePasskeyVerify({ routes, remember }),
+                { initialProps: { remember: false } },
+            );
+
+            rerender({ remember: true });
+
+            await act(async () => {
+                await result.current.verify();
+            });
+
+            const options = (Passkeys.verify as Mock).mock.calls[0][0] as {
+                remember: () => boolean;
+            };
+            expect(options.remember()).toBe(true);
         });
 
         it("sets error and calls onError when verify rejects", async () => {
@@ -154,7 +178,77 @@ describe("React adapter", () => {
                 expect(onSuccess).toHaveBeenCalledWith(response);
             });
 
-            expect(Passkeys.autofill).toHaveBeenCalledWith({ routes });
+            expect(Passkeys.autofill).toHaveBeenCalledWith({
+                routes,
+                remember: expect.any(Function),
+            });
+        });
+
+        it("forwards configured remember to autofill", async () => {
+            (Passkeys.isAutofillSupported as Mock).mockResolvedValue(true);
+            (Passkeys.autofill as Mock).mockResolvedValue({});
+
+            renderHook(() =>
+                usePasskeyVerify({
+                    routes,
+                    remember: true,
+                    autofill: true,
+                }),
+            );
+
+            await waitFor(() => {
+                expect(Passkeys.autofill).toHaveBeenCalled();
+            });
+
+            const options = (Passkeys.autofill as Mock).mock.calls[0][0] as {
+                remember: () => boolean;
+            };
+            expect(options.remember()).toBe(true);
+        });
+
+        it("does not report loading while autofill waits for the user", async () => {
+            (Passkeys.isAutofillSupported as Mock).mockResolvedValue(true);
+            (Passkeys.autofill as Mock).mockReturnValue(new Promise(() => {}));
+
+            const { result } = renderHook(() =>
+                usePasskeyVerify({ routes, autofill: true }),
+            );
+
+            await waitFor(() => {
+                expect(Passkeys.autofill).toHaveBeenCalled();
+            });
+
+            expect(result.current.isLoading).toBe(false);
+        });
+
+        it("stays loading when verify aborts a pending autofill", async () => {
+            (Passkeys.isAutofillSupported as Mock).mockResolvedValue(true);
+
+            let abortAutofill: (value: undefined) => void = () => {};
+            (Passkeys.autofill as Mock).mockReturnValue(
+                new Promise((resolve) => {
+                    abortAutofill = resolve;
+                }),
+            );
+            (Passkeys.verify as Mock).mockImplementation(() => {
+                abortAutofill(undefined);
+
+                return new Promise(() => {});
+            });
+
+            const { result } = renderHook(() =>
+                usePasskeyVerify({ routes, autofill: true }),
+            );
+
+            await waitFor(() => {
+                expect(Passkeys.autofill).toHaveBeenCalled();
+            });
+
+            await act(async () => {
+                void result.current.verify();
+            });
+
+            expect(result.current.isLoading).toBe(true);
         });
 
         it("skips post-unmount callbacks when autofill resolves after unmount", async () => {

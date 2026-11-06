@@ -7,6 +7,7 @@ import {
 } from "@simplewebauthn/browser";
 import { NotSupportedError, toPasskeyError } from "./errors";
 import { configure as configureHttp, get, post } from "./http";
+import { resolveRemember } from "./remember";
 import { defaultRoutes } from "./routes";
 import type {
     PasskeysConfig,
@@ -15,10 +16,10 @@ import type {
     RegistrationRequest,
     RegistrationResponse,
     RouteOverrides,
+    VerifyOptions,
     VerifyOptionsResponse,
     VerifyRequest,
     VerifyResponse,
-    VerifyRouteOptions,
 } from "./types";
 
 /**
@@ -85,7 +86,7 @@ export const Passkeys = {
     /**
      * Verify with a passkey.
      */
-    async verify(options: VerifyRouteOptions = {}): Promise<VerifyResponse> {
+    async verify(options: VerifyOptions = {}): Promise<VerifyResponse> {
         if (!this.isSupported()) {
             throw new NotSupportedError();
         }
@@ -105,7 +106,10 @@ export const Passkeys = {
 
             const credential = await startAuthentication({ optionsJSON });
 
-            const request: VerifyRequest = { credential };
+            const request: VerifyRequest = {
+                credential,
+                remember: resolveRemember(options.remember),
+            };
 
             return await post<VerifyResponse>(routes.submitRoute, request);
         } catch (error) {
@@ -123,7 +127,7 @@ export const Passkeys = {
      * is not supported or was cancelled.
      */
     async autofill(
-        options: VerifyRouteOptions = {},
+        options: VerifyOptions = {},
     ): Promise<VerifyResponse | undefined> {
         if (!this.isSupported()) {
             return;
@@ -150,7 +154,10 @@ export const Passkeys = {
                 useBrowserAutofill: true,
             });
 
-            const request: VerifyRequest = { credential };
+            const request: VerifyRequest = {
+                credential,
+                remember: resolveRemember(options.remember),
+            };
 
             return await post<VerifyResponse>(routes.submitRoute, request);
         } catch (error) {

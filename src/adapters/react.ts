@@ -108,7 +108,6 @@ export const usePasskeyVerify = ({
                 return;
             }
 
-            setIsLoading(true);
             resetError();
 
             try {
@@ -128,8 +127,6 @@ export const usePasskeyVerify = ({
                 }
 
                 handleError(e);
-            } finally {
-                setIsLoading(false);
             }
         };
 

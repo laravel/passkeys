@@ -206,6 +206,51 @@ describe("React adapter", () => {
             expect(options.remember()).toBe(true);
         });
 
+        it("does not report loading while autofill waits for the user", async () => {
+            (Passkeys.isAutofillSupported as Mock).mockResolvedValue(true);
+            (Passkeys.autofill as Mock).mockReturnValue(new Promise(() => {}));
+
+            const { result } = renderHook(() =>
+                usePasskeyVerify({ routes, autofill: true }),
+            );
+
+            await waitFor(() => {
+                expect(Passkeys.autofill).toHaveBeenCalled();
+            });
+
+            expect(result.current.isLoading).toBe(false);
+        });
+
+        it("stays loading when verify aborts a pending autofill", async () => {
+            (Passkeys.isAutofillSupported as Mock).mockResolvedValue(true);
+
+            let abortAutofill: (value: undefined) => void = () => {};
+            (Passkeys.autofill as Mock).mockReturnValue(
+                new Promise((resolve) => {
+                    abortAutofill = resolve;
+                }),
+            );
+            (Passkeys.verify as Mock).mockImplementation(() => {
+                abortAutofill(undefined);
+
+                return new Promise(() => {});
+            });
+
+            const { result } = renderHook(() =>
+                usePasskeyVerify({ routes, autofill: true }),
+            );
+
+            await waitFor(() => {
+                expect(Passkeys.autofill).toHaveBeenCalled();
+            });
+
+            await act(async () => {
+                void result.current.verify();
+            });
+
+            expect(result.current.isLoading).toBe(true);
+        });
+
         it("skips post-unmount callbacks when autofill resolves after unmount", async () => {
             (Passkeys.isAutofillSupported as Mock).mockResolvedValue(true);
 

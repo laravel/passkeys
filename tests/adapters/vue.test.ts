@@ -250,6 +250,41 @@ describe("Vue adapter", () => {
             expect(options.remember()).toBe(true);
         });
 
+        it("does not report loading while autofill waits for the user", async () => {
+            (Passkeys.isAutofillSupported as Mock).mockResolvedValue(true);
+            (Passkeys.autofill as Mock).mockReturnValue(new Promise(() => {}));
+
+            const wrapper = mount(createVerifyWrapper(true));
+            await flushPromises();
+
+            expect(Passkeys.autofill).toHaveBeenCalled();
+            expect(wrapper.find("[data-loading]").text()).toBe("false");
+        });
+
+        it("stays loading when verify aborts a pending autofill", async () => {
+            (Passkeys.isAutofillSupported as Mock).mockResolvedValue(true);
+
+            let abortAutofill: (value: undefined) => void = () => {};
+            (Passkeys.autofill as Mock).mockReturnValue(
+                new Promise((resolve) => {
+                    abortAutofill = resolve;
+                }),
+            );
+            (Passkeys.verify as Mock).mockImplementation(() => {
+                abortAutofill(undefined);
+
+                return new Promise(() => {});
+            });
+
+            const wrapper = mount(createVerifyWrapper(true));
+            await flushPromises();
+
+            await wrapper.find("[data-verify]").trigger("click");
+            await flushPromises();
+
+            expect(wrapper.find("[data-loading]").text()).toBe("true");
+        });
+
         it("calls Passkeys.cancel on unmount", async () => {
             const wrapper = mount(createVerifyWrapper());
             await flushPromises();

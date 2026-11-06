@@ -79,7 +79,6 @@ export const usePasskeyVerify = ({
             return;
         }
 
-        isLoading.value = true;
         resetError();
 
         try {
@@ -93,8 +92,6 @@ export const usePasskeyVerify = ({
             }
         } catch (e) {
             handleError(e);
-        } finally {
-            isLoading.value = false;
         }
     });
 

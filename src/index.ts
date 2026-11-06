@@ -6,6 +6,7 @@ export {
     UserCancelledError,
     PasskeyExistsError,
     InvalidDomainError,
+    UnexpectedResponseError,
     ServerError,
 } from "./errors";
 

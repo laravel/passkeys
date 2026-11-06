@@ -1,4 +1,4 @@
-import { ServerError } from "./errors";
+import { ServerError, UnexpectedResponseError } from "./errors";
 import type { PasskeysConfig } from "./types";
 
 type CsrfToken = {
@@ -92,7 +92,7 @@ export const get = async <T>(url: string): Promise<T> => {
         await handleErrorResponse(response);
     }
 
-    return response.json() as Promise<T>;
+    return parseJson<T>(response);
 };
 
 /**
@@ -122,7 +122,21 @@ export const post = async <T>(url: string, data: unknown): Promise<T> => {
         await handleErrorResponse(response);
     }
 
-    return response.json() as Promise<T>;
+    return parseJson<T>(response);
+};
+
+/**
+ * Guest-only routes redirect authenticated users to an HTML page, and fetch
+ * follows redirects, so a 200 response can still carry a non-JSON body.
+ */
+const parseJson = async <T>(response: Response): Promise<T> => {
+    try {
+        return (await response.json()) as T;
+    } catch (error) {
+        throw new UnexpectedResponseError(response.url, response.redirected, {
+            cause: error,
+        });
+    }
 };
 
 /**

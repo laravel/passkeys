@@ -5,12 +5,19 @@ import {
     UserCancelledError,
     PasskeyExistsError,
     InvalidDomainError,
+    UnexpectedResponseError,
     toPasskeyError,
 } from "../src/errors";
 
 describe("toPasskeyError", () => {
     it("returns PasskeyError unchanged", () => {
         const original = new PasskeyError("original");
+
+        expect(toPasskeyError(original)).toBe(original);
+    });
+
+    it("returns UnexpectedResponseError unchanged", () => {
+        const original = new UnexpectedResponseError("/dashboard", true);
 
         expect(toPasskeyError(original)).toBe(original);
     });
